@@ -1,0 +1,58 @@
+# Credentials and local configuration
+.env
+.env.*
+secrets
+secrets/
+**/secrets/
+*.pem
+*.key
+
+# Development-only or private materials
+.agents/
+**/.agents/
+attached_assets/
+**/attached_assets/
+screenshots/
+**/screenshots/
+tmp/
+temp/
+
+# Generated package, build, cache, and test output
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+**/build/
+coverage/
+**/coverage/
+.cache/
+**/.cache/
+.vite/
+**/.vite/
+.turbo/
+**/.turbo/
+*.log
+*.tmp
+*.tsbuildinfo
+
+# Local database files and dumps
+*.dump
+*.sql.gz
+*.dump.sql
+*-dump.sql
+*-backup.sql
+*.sqlite
+*.sqlite3
+*.db
+db-dumps/
+**/db-dumps/
+database-dumps/
+**/database-dumps/
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+
+# Keep required source data visible to Git.
+# Do not ignore artifacts/api-server/data/tanzil-quran/.

@@ -1,0 +1,400 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: workspaces
+    description: Shared reviewer-gated evidence workspaces
+  - name: cases
+    description: Preliminary case records and reviewed evidence
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /workspaces:
+    get:
+      operationId: listWorkspaces
+      tags: [workspaces]
+      responses:
+        "200":
+          description: User's personal workspace and joined team workspaces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workspaces:
+                    type: array
+                    items: { $ref: "#/components/schemas/Workspace" }
+                required: [workspaces]
+    post:
+      operationId: createWorkspace
+      tags: [workspaces]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { name: { type: string, minLength: 1, maxLength: 120 } }
+              required: [name]
+      responses:
+        "201":
+          description: Created team workspace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { workspace: { $ref: "#/components/schemas/Workspace" } }
+                required: [workspace]
+  /workspaces/{id}/invites:
+    post:
+      operationId: createWorkspaceInvite
+      tags: [workspaces]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { role: { type: string, enum: [member, reviewer] } }
+              required: [role]
+      responses:
+        "201":
+          description: One-time expiring invitation code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { code: { type: string }, expiresAt: { type: string, format: date-time } }
+                required: [code, expiresAt]
+  /workspaces/join:
+    post:
+      operationId: joinWorkspace
+      tags: [workspaces]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { code: { type: string } }
+              required: [code]
+      responses:
+        "200":
+          description: Joined workspace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { workspace: { $ref: "#/components/schemas/Workspace" } }
+                required: [workspace]
+  /workspaces/{id}/members:
+    get:
+      operationId: listWorkspaceMembers
+      tags: [workspaces]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Workspace membership and roles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { members: { type: array, items: { $ref: "#/components/schemas/Member" } } }
+                required: [members]
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      parameters:
+        - { in: query, name: workspaceId, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Cases in an accessible workspace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { cases: { type: array, items: { $ref: "#/components/schemas/Case" } } }
+                required: [cases]
+    post:
+      operationId: createCase
+      tags: [cases]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId: { type: string }
+                claim: { type: string }
+                context: { type: string }
+                language: { type: string }
+              required: [claim, context, language]
+      responses:
+        "201":
+          description: Manual intake saved for review; client analysis and reviewer fields are ignored
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Case" }
+  /verify/status:
+    get:
+      operationId: getVerificationAvailability
+      tags: [cases]
+      responses:
+        "200":
+          description: Recent claim-free provider availability probe; it does not guarantee the next analysis will succeed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerificationAvailabilityResponse" }
+  /verify:
+    post:
+      operationId: createVerifiedCase
+      tags: [cases]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                claim: { type: string, minLength: 8, maxLength: 4000 }
+                context: { type: string }
+                language: { type: string }
+                workspaceId: { type: string }
+                requestId: { type: string, format: uuid }
+              required: [claim, requestId]
+      responses:
+        "200":
+          description: Existing saved result returned for a repeated idempotency key in this workspace
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifySavedCaseResponse" }
+        "201":
+          description: AI analysis saved atomically as a preliminary case and audit event
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerifySavedCaseResponse" }
+        "409": { description: Idempotency key reused for different claim input in this workspace }
+  /cases/{id}/decision:
+    patch:
+      operationId: decideCase
+      tags: [cases]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId: { type: string }
+                status: { type: string, enum: [supported, needs_review, insufficient] }
+                reviewerNote: { type: string, minLength: 12 }
+              required: [workspaceId, status, reviewerNote]
+      responses:
+        "200": { description: Updated reviewed case, content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "409": { description: Supporting requires accepted case-specific evidence }
+  /cases/{id}/audit:
+    get:
+      operationId: getCaseAudit
+      tags: [cases]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+        - { in: query, name: workspaceId, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Audit history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { audit: { type: array, items: { $ref: "#/components/schemas/AuditEvent" } } }
+                required: [audit]
+        "404": { description: Case does not exist or is inaccessible }
+  /cases/{id}/evidence:
+    get:
+      operationId: listCaseEvidence
+      tags: [cases]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+        - { in: query, name: workspaceId, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: Case-specific evidence submissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { evidence: { type: array, items: { $ref: "#/components/schemas/Evidence" } } }
+                required: [evidence]
+    post:
+      operationId: submitCaseEvidence
+      tags: [cases]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId: { type: string }
+                title: { type: string }
+                excerpt: { type: string }
+                reference: { type: string }
+                edition: { type: string }
+                url: { type: string, format: uri }
+              required: [workspaceId, title, excerpt, reference]
+      responses:
+        "201":
+          description: Evidence submitted pending review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { evidence: { $ref: "#/components/schemas/Evidence" } }
+                required: [evidence]
+  /cases/{id}/evidence/{evidenceId}:
+    patch:
+      operationId: reviewCaseEvidence
+      tags: [cases]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+        - { in: path, name: evidenceId, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workspaceId: { type: string }
+                status: { type: string, enum: [accepted, rejected] }
+                reviewerNote: { type: string, minLength: 8 }
+              required: [workspaceId, status, reviewerNote]
+      responses:
+        "200":
+          description: Evidence decision recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { evidence: { $ref: "#/components/schemas/Evidence" } }
+                required: [evidence]
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Workspace:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        role: { type: string, enum: [owner, reviewer, member] }
+        isPersonal: { type: boolean }
+      required: [id, name, role, isPersonal]
+    Member:
+      type: object
+      properties:
+        userId: { type: string }
+        role: { type: string, enum: [owner, reviewer, member] }
+      required: [userId, role]
+    Case:
+      type: object
+      properties:
+        id: { type: string }
+        claim: { type: string }
+        context: { type: string }
+        language: { type: string }
+        status: { type: string, enum: [supported, needs_review, insufficient] }
+        confidence: { type: integer, minimum: 0, maximum: 100 }
+        evidenceLevel: { type: string }
+        summary: { type: string }
+        recommendedAction: { type: string }
+        sources: { type: array, items: { type: string } }
+        sourceNotes: { type: array, items: { type: string } }
+        evidence: { type: array, items: { type: object, additionalProperties: true } }
+        analysisMode: { type: string, enum: [ai, local] }
+        modeNote: { type: string }
+        analysisVerified: { type: boolean }
+        reviewValidated: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [id, claim, context, language, status, confidence, evidenceLevel, sources, sourceNotes, evidence, analysisMode, modeNote, analysisVerified, reviewValidated, createdAt]
+    VerifySavedCaseResponse:
+      type: object
+      properties:
+        case: { $ref: "#/components/schemas/Case" }
+      required: [case]
+    VerificationAvailabilityResponse:
+      type: object
+      properties:
+        service: { type: string, enum: [preliminary_triage] }
+        providerConfigured: { type: boolean }
+        providerConnection: { type: string, enum: [replit_managed_openai, direct_openai, unconfigured] }
+        availability:
+          type: object
+          properties:
+            state: { type: string, enum: [available, unconfigured, auth_failed, rate_limited, timeout, unavailable] }
+            checkedAt: { type: string, format: date-time }
+          required: [state, checkedAt]
+        sourceRetrievalConnected: { type: boolean }
+        canScientificallyVerify: { type: boolean }
+      required: [service, providerConfigured, providerConnection, availability, sourceRetrievalConnected, canScientificallyVerify]
+    Evidence:
+      type: object
+      properties:
+        id: { type: string }
+        workspaceId: { type: string }
+        caseId: { type: string }
+        submittedBy: { type: string }
+        title: { type: string }
+        excerpt: { type: string }
+        reference: { type: string }
+        edition: { type: [string, "null"] }
+        url: { type: [string, "null"] }
+        status: { type: string, enum: [pending, accepted, rejected] }
+        reviewerNote: { type: [string, "null"] }
+        reviewedBy: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        reviewedAt: { type: [string, "null"], format: date-time }
+      required: [id, workspaceId, caseId, submittedBy, title, excerpt, reference, status, createdAt]
+    AuditEvent:
+      type: object
+      properties:
+        id: { type: string }
+        action: { type: string }
+        actorUserId: { type: string }
+        metadata: { type: object, additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+      required: [id, action, actorUserId, metadata, createdAt]
+

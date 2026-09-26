@@ -1,0 +1,5 @@
+# Preserve the licensed Tanzil corpus and its attribution files verbatim.
+artifacts/api-server/data/tanzil-quran/** whitespace=-blank-at-eol,-blank-at-eof
+
+# Preserve the existing OpenAPI source without whitespace-only normalization.
+lib/api-spec/openapi.yaml whitespace=-blank-at-eof
