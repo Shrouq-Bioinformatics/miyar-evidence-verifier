@@ -1,0 +1,314 @@
+{
+  "runAt": "2026-09-27T17:07:07.945Z",
+  "version": "3.1.0",
+  "commit": "596f73ae55f514da85cfe46a4c8ce5938e90e90a",
+  "scriptSha256": "abd2edca942ef27e16da60098f9c2ab95336dea3e593f886aab6ac09d388dee9",
+  "caseHashes": {
+    "v1": "e1ddc030e082766321c4a02cdc73fbdf832a32183a7c6cb20890f94873005699",
+    "v2": "2781164358f9b8fd979df5e164c4e8bc929f88aa2ff5471ee7713a838e61bfac",
+    "v3": "b2207689d2441ff1d3266ace5970e2795c14bd17d2dbc43f985ba2a595f57447"
+  },
+  "repetitions": {
+    "v1_frozen": 3,
+    "v2_holdout": 8,
+    "v3_holdout": 3
+  },
+  "productionDatabaseAccessed": false,
+  "applicationDatabaseWrites": false,
+  "rowCount": 153,
+  "outputHashes": {
+    "results": "96e62896b885b9674c8ce0ac72006f2650acd5e7b2582df30dac8e4b33f01b3e",
+    "summary": "34dafebd138a1c9d2659f306f60f6beace8e6ffe1432cdd77c1ce6f1788c99ab",
+    "engineering": "7565343c897e6de8e6ad234314afee4fb69433ead9144c085673226f8d2fb799"
+  },
+  "repeatConsistency": [
+    {
+      "case": "v1_frozen:quran-16-90-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:quran-6-97-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:tafsir-2-255-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:hadith-bukhari-1-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:hadith-muslim-55-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:fiqh-fasting-2-183-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:contemporary-fiqh-iifa-bonds-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:aqidah-tawhid-112-1-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:family-social-parents-17-23-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:general-islamic-49-13-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:english-quran-16-90",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:french-quran-6-97",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:unsupported-fabricated-hadith-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:unsupported-invalid-quran-reference-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v1_frozen:unsupported-fictional-claim-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-quran-24-35-ar",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-tafsir-24-35-ar",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-hadith-bukhari-1-en",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-fiqh-fasting-2-185-ar",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-contemporary-iifa-ai-ar",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": false,
+      "normalized_status_consistent": false
+    },
+    {
+      "case": "v2_holdout:v2-holdout-quran-2-255-en",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-quran-3-190-fr",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-fabricated-hadith-ar",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v2_holdout:v2-holdout-invalid-quran-reference-ar",
+      "repetitions": 8,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-quran-noisy-6-97-fr",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-quran-light-24-35-en",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-quran-parents-clitic-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-quran-explicit-36-58-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-tafsir-explicit-18-109-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-hadith-bukhari-wording-fr",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-hadith-muslim-reference-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-iifa-bonds-equivalence-en",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": false,
+      "normalized_status_consistent": false
+    },
+    {
+      "case": "v3_holdout:v3-iifa-ai-arabic-identity",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": false,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-negative-fabricated-hadith-fr",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-negative-invalid-quran-ar",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": true,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    },
+    {
+      "case": "v3_holdout:v3-negative-lookalike-external-en",
+      "repetitions": 3,
+      "raw_candidate_fingerprint_consistent": false,
+      "accepted_candidate_fingerprint_consistent": true,
+      "target_match_method_consistent": true,
+      "normalized_status_consistent": true
+    }
+  ]
+}

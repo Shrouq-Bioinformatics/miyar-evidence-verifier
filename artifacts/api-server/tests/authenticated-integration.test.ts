@@ -611,12 +611,19 @@ test("authenticated route integration: permissions, five scenarios, review, and 
 
     const failureCases = [
       ["F_QURANENC", "QuranEnc failure", "ما معنى آية الكرسي؟", "بحث أكاديمي", "quranenc"],
-      ["F_WEB", "web search failure", "ما حكم صلاة الوتر؟", "سؤال معاصر", "web_search"],
       ["F_CLASSIFIER", "invalid classifier output", "ما حكم صلاة الوتر؟", "سؤال معاصر", "invalid_classifier"],
+      // Run before the injected web-search outage, which can update the shared provider availability monitor.
+      ["F_WEB", "web search failure", "ما حكم صلاة الوتر؟", "سؤال معاصر", "web_search"],
       ["F_AI", "AI analysis failure", "The fictional island of Virelia requires moonlight permits for invented birds.", "منشور اجتماعي", "ai_analysis"],
     ] as const;
     for (const [key, title, query, context, mode] of failureCases) {
       injectedCalls[key] = 0;
+      const observedProviderRequests: {
+        url: string;
+        containsTarget: boolean;
+        toolTypes: string[] | null;
+        model: string | null;
+      }[] = [];
       const originalFetch = globalThis.fetch;
       globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = input instanceof Request ? input.url : String(input);
@@ -624,6 +631,16 @@ test("authenticated route integration: permissions, five scenarios, review, and 
         let body: any = {};
         try { body = rawBody ? JSON.parse(rawBody) : {}; } catch { /* Non-JSON fetch bodies pass through. */ }
         const isTarget = rawBody.includes(`E2E_TEST_${runId}_${key}`);
+        if (failureMode === "invalid_classifier" && url.startsWith("https://api.openai.com/")) {
+          observedProviderRequests.push({
+            url,
+            containsTarget: isTarget,
+            toolTypes: Array.isArray(body.tools)
+              ? body.tools.map((tool: any) => String(tool?.type ?? "unknown"))
+              : null,
+            model: typeof body.model === "string" ? body.model : null,
+          });
+        }
         if (failureMode === "quranenc" && url.startsWith("https://quranenc.com/api/v1/translation/aya/")) {
           injectedCalls[key]++;
           return new Response("injected test-only QuranEnc outage", { status: 503 });
@@ -633,8 +650,9 @@ test("authenticated route integration: permissions, five scenarios, review, and 
           injectedCalls[key]++;
           return new Response("injected test-only web-search outage", { status: 503 });
         }
-        if (isTarget && failureMode === "invalid_classifier"
-          && url === "https://api.openai.com/v1/responses" && !Array.isArray(body.tools)) {
+        if (failureMode === "invalid_classifier"
+          && url === "https://api.openai.com/v1/responses"
+          && (!Array.isArray(body.tools) || !body.tools.some((tool: any) => tool.type === "web_search"))) {
           injectedCalls[key]++;
           return Response.json({
             output: [{
@@ -674,7 +692,13 @@ test("authenticated route integration: permissions, five scenarios, review, and 
             injectedCalls[key] > 0 && response.status === 201
             && !/fallbackUsed=|routingCategories|selectedDomains/u.test(item.sourceNotes.join(" "))
             && item.evidence.every(approvedEvidence),
-            { injected: injectedCalls[key], status: response.status, notes: item.sourceNotes, evidence: item.evidence });
+            {
+              injected: injectedCalls[key],
+              status: response.status,
+              notes: item.sourceNotes,
+              evidence: item.evidence,
+              observedProviderRequests,
+            });
         } else {
           check("failure: AI analysis outage was injected and did not persist a case",
             injectedCalls[key] > 0 && response.status >= 500 && !item.caseId,
