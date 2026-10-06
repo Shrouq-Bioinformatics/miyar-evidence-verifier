@@ -124,14 +124,11 @@ pnpm --filter @workspace/api-server run test:providers
 يتجاهل `.gitignore` ملفات البيئة والمفاتيح والبيانات المحلية والسجلات وملفات
 البيانات الداخلية `.agents/` و`.local/`. لا يتضمن `.env.example` قيمًا سرية.
 
+
 ## روابط التسليم
 
-- رابط الحل: **[TO BE ADDED]**
-- مستودع GitHub: **[TO BE ADDED]**
-- فيديو العرض: **[TO BE ADDED]** — الملف المحلي:
-  `artifacts/miyar-competition-demo/MIYAR_Final_Competition_Demo.mp4`
-- العرض التقديمي: جاهز؛ الرابط أو مرجع الملف: **[TO BE ADDED]**
+- رابط الحل: https://emergency-alert-system-algarnishrouq.replit.app
+- GitHub: https://github.com/Shrouq-Bioinformatics/miyar-evidence-verifier
+- الفيديو التوضيحي: https://youtu.be/Qfrozkh2LBM
+- العرض التقديمي: MIYAR_Final_Competition_Presentation_Editable.pdf
 
-للتفاصيل ومراجعة المصادر والتراخيص، راجع
-[`docs/MIYAR_Final_Documentation.md`](docs/MIYAR_Final_Documentation.md) و
-[`docs/MIYAR_Submission_Checklist.md`](docs/MIYAR_Submission_Checklist.md).
