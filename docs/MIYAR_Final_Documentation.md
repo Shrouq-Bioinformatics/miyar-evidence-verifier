@@ -221,8 +221,7 @@ PORT=18726 BASE_PATH=/ pnpm --filter @workspace/miyar run build
 ## 15. الأدوات المستخدمة
 
 **أدوات بناء المشروع:** Replit، React، TypeScript، Vite، Node.js، Express،
-OpenAI API، و`pnpm`. لا يذكر GitHub كأداة مستخدمة في هذا التنفيذ؛ رابط
-المستودع العام ما زال حقلًا مطلوبًا عند التسليم.
+OpenAI API، و`pnpm`. يستخدم GitHub كمستودع عام للكود والتوثيق النهائي.
 
 **خدمات المصادر، منفصلة عن أدوات البناء:** Tanzil، QuranEnc،
 HadithWeb/بوابة السنة التابعة للرئاسة العامة للبحوث العلمية والإفتاء.
