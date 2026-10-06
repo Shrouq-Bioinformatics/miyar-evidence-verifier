@@ -1,0 +1,813 @@
+FINAL SOURCE COMPLETION — MIYAR-FINAL
+IMPORT ALL REMAINING SOURCE FAMILIES NOW
+DO NOT TOUCH THE WORKING FRONTEND OR API CONTRACT
+
+CURRENT WORKING STATE — FREEZE IT:
+- Public app works without login.
+- POST /api/verify/public works.
+- Quran / Tanzil is LIVE.
+- Tafsir via QuranEnc — المختصر في تفسير القرآن الكريم — is LIVE.
+- Response contract is already stable.
+- Frontend architecture is already stable.
+- No Clerk.
+- No saved workflows.
+- No Create.
+
+DO NOT:
+- redesign the app
+- change routes
+- change /api/verify/public response shape
+- change Quran provider
+- remove QuranEnc
+- add authentication
+- add persistence
+- refactor unrelated code
+
+==================================================
+GOAL
+==================================================
+
+Complete the remaining six MIYAR source families as quickly and safely as possible:
+
+1. Hadith
+2. Fiqh
+3. Seerah
+4. Aqeedah
+5. Terminology
+6. Misconceptions
+
+The previous MIYAR repository is:
+
+https://github.com/Shrouq-Bioinformatics/miyar-evidence-verifier
+
+FIRST:
+inspect that repository thoroughly for all previous source/provider work.
+
+Search for:
+- source provider implementations
+- cached/static corpus files
+- fixtures
+- source registries
+- source URLs
+- normalization utilities
+- retrieval adapters
+- previously passing tests
+- source metadata
+- archived evidence logic
+- source provenance documentation
+
+REUSE OLD WORK FIRST.
+
+Do not rebuild a provider from scratch if stable prior code/data exists.
+
+==================================================
+PRIORITY ORDER
+==================================================
+
+Implement in this order:
+
+1. HADITH
+2. FIQH
+3. SEERAH
+4. AQEEDAH
+5. TERMINOLOGY
+6. MISCONCEPTIONS
+
+But work through ALL SIX in this task.
+
+==================================================
+COMMON PROVIDER CONTRACT
+==================================================
+
+Every live provider must adapt to the new MIYAR EvidenceProvider interface.
+
+Example conceptual interface:
+
+interface EvidenceProvider {
+  id: string
+  title: string
+  domain: string
+  search(claim: Claim): Promise<EvidenceItem[]>
+}
+
+Evidence item:
+
+{
+  sourceTitle: string
+  locator: string
+  excerpt: string
+  url: string | null
+  metadata?: Record<string, unknown>
+}
+
+All providers must return normalized evidence into the existing
+/api/verify/public pipeline.
+
+==================================================
+CRITICAL FAILURE ISOLATION
+==================================================
+
+Each provider MUST be isolated.
+
+One provider failing, timing out, or returning malformed data MUST NOT make:
+
+POST /api/verify/public
+
+return 500.
+
+Use:
+- per-provider try/catch
+- reasonable timeout
+- empty evidence fallback
+
+If evidence is unavailable:
+return a valid verification result such as:
+
+insufficient
+
+or:
+
+needs_review
+
+Do NOT crash the request.
+
+==================================================
+1. HADITH
+==================================================
+
+Target source:
+
+جامع خادم الحرمين الشريفين للسنة النبوية المطهرة
+sunna.alifta.gov.sa
+
+Primary current scope:
+Sahih al-Bukhari / Sahih Muslim references already supported in previous MIYAR work.
+
+SEARCH THE OLD REPOSITORY FIRST for:
+- alifta
+- sunna
+- hadith
+- bukhari
+- muslim
+- external retrieval
+- hadith provider
+- evidence provider
+- source allowlist
+- hadith fixtures
+
+REUSE existing logic.
+
+If direct official retrieval is available:
+use it.
+
+If previous MIYAR used a verified source adapter or bounded source-specific retrieval:
+port it.
+
+DO NOT use broad general web search as automatic direct evidence.
+
+CRITICAL HADITH RULES:
+
+A hadith text or reference appearing in a source is NOT enough to validate an incorrect explicit number.
+
+If user writes:
+
+حديث «إنما الأعمال بالنيات» رواه البخاري برقم 999999.
+
+The explicit wrong number MUST NOT become supported.
+
+Return:
+mismatch
+or
+insufficient
+
+as appropriate.
+
+Preserve numbering ambiguity when real source editions differ.
+
+Do not fabricate a canonical number.
+
+==================================================
+2. FIQH
+==================================================
+
+Target:
+
+مختصر القدوري
+
+Scope:
+Hanafi fiqh only.
+
+SEARCH old repository for:
+- quduri
+- qaduri
+- fiqh
+- hanafi
+- shamela
+- book retrieval
+- provider
+- fixtures
+
+Recover the previously working bounded Quduri retrieval if available.
+
+If the old provider used Shamela:
+reuse its exact bounded source logic.
+
+Public source title:
+
+مختصر القدوري في الفقه الحنفي
+
+CRITICAL SCOPE RULE:
+
+Quduri may support:
+
+"عند الحنفية..."
+
+Quduri alone MUST NOT support:
+
+"جميع المذاهب..."
+"أجمع العلماء..."
+"اتفق الفقهاء..."
+
+Example positive test:
+
+ذكر مختصر القدوري أن مسح الرأس فرض في الوضوء عند الحنفية.
+
+Example negative test:
+
+ذكر مختصر القدوري حكمًا، ولذلك فهو محل إجماع جميع المذاهب.
+
+The second must NOT be directly supported by Quduri alone.
+
+==================================================
+3. SEERAH
+==================================================
+
+Target:
+
+السيرة النبوية لابن هشام
+
+Search old repository for:
+- ibn hisham
+- seerah
+- sira
+- shamela
+- provider
+- historical evidence
+- fixtures
+
+Reuse old bounded provider logic if present.
+
+Public title:
+
+السيرة النبوية لابن هشام
+
+CRITICAL:
+
+This source may directly support attribution claims such as:
+
+"ذكر ابن هشام..."
+"أورد ابن هشام..."
+
+It must NOT automatically establish:
+
+"الرواية صحيحة حديثيًا"
+"ثبتت تاريخيًا بلا خلاف"
+"صحح العلماء الرواية"
+
+Test:
+
+ذكر ابن هشام خبرًا عن الهجرة، وهذا وحده يثبت صحة الرواية حديثيًا.
+
+Expected:
+the attribution portion may be supported,
+but the authentication conclusion must be insufficient / needs review.
+
+==================================================
+4. AQEEDAH
+==================================================
+
+Target:
+
+كتاب السنة
+لعبدالله بن أحمد بن حنبل
+
+Search old repository for:
+- kitab al sunnah
+- السنة
+- abdullah ibn ahmad
+- aqeedah
+- shamela
+- provider
+- fixtures
+
+Reuse previously bounded source retrieval.
+
+Public title:
+
+كتاب السنة لعبدالله بن أحمد بن حنبل
+
+CRITICAL:
+
+Do not convert presence in one work into:
+
+- universal consensus
+- agreement of all scholars
+- automatic final theological ruling
+
+Evidence must stay within the source's scope.
+
+==================================================
+5. TERMINOLOGY
+==================================================
+
+Target:
+
+قاموس المحتوى الإسلامي / الجمهرة
+
+Search old repository for:
+- jumhura
+- aljumhura
+- terminology
+- dictionary
+- dictionary/word
+- term provider
+- definition provider
+- canonical URL
+- fixtures
+
+Previous MIYAR work used canonical dictionary URLs similar to:
+
+/dictionary/word/{id}
+
+Recover that provider if present.
+
+Public source title:
+
+قاموس المحتوى الإسلامي — الجمهرة
+
+CRITICAL:
+
+Dictionary evidence may support:
+
+definition
+terminological meaning
+usage
+
+Dictionary evidence alone MUST NOT prove:
+
+- halal / haram
+- fiqh ruling
+- aqeedah ruling
+- universal religious judgment
+
+Test a definition claim.
+
+Then test a claim that incorrectly derives a legal ruling from the definition.
+
+The legal conclusion must NOT be directly supported.
+
+==================================================
+6. MISCONCEPTIONS
+==================================================
+
+Target:
+
+Bayyinat / بينات challenge material previously used in MIYAR.
+
+Search old repository for:
+- bayyinat
+- بينات
+- misconception
+- challenge package
+- PDF
+- package source
+- 7937
+- retrieval
+- corpus
+- fixtures
+
+Reuse previous challenge-package material if available.
+
+Previous project context may include a large source document with approximately:
+- 1,259 pages
+- searchable text coverage below 100%
+
+DO NOT turn text-searchability statistics into scientific evidence.
+
+Use retrieved passages only.
+
+Public title:
+
+بينات — مواد معالجة الشبهات
+
+Do NOT claim:
+"يغطي جميع الشبهات"
+
+Use:
+"ضمن المواد المتاحة في المصدر"
+
+==================================================
+SOURCE REGISTRY
+==================================================
+
+Update the central provider registry so LIVE providers become:
+
+Quran
+Tafsir
+Hadith
+Fiqh
+Seerah
+Aqeedah
+Terminology
+Misconceptions
+
+Do not duplicate provider IDs.
+
+Do not create multiple conflicting implementations for one domain.
+
+==================================================
+SOURCE ROUTING
+==================================================
+
+Routing examples:
+
+Quran verse claim
+→ Quran
+
+Verse interpretation
+→ Tafsir
+
+Hadith text/reference
+→ Hadith
+
+Madhhab / fiqh claim
+→ Fiqh
+
+Seerah attribution
+→ Seerah
+
+Aqeedah/source attribution
+→ Aqeedah
+
+Definition / terminology
+→ Terminology
+
+Misconception / common question material
+→ Misconceptions
+
+Claims may route to multiple relevant providers when scientifically appropriate.
+
+But do NOT query all providers blindly for every claim.
+
+==================================================
+EVIDENCE RELATIONSHIP SAFETY
+==================================================
+
+Keep internal relations conservative:
+
+direct_support
+reference_anchor
+related_but_insufficient
+contradiction_or_mismatch
+requires_human_review
+
+Rules:
+
+reference_anchor ≠ direct_support
+
+related evidence ≠ support
+
+source presence ≠ truth
+
+source scope MUST match claim scope
+
+==================================================
+DO NOT BREAK CURRENT LIVE PROVIDERS
+==================================================
+
+Do not change:
+
+Quran / Tanzil
+
+or:
+
+QuranEnc / المختصر في تفسير القرآن الكريم
+
+Run regression tests for both after integrating the remaining providers.
+
+==================================================
+SOURCES PAGE
+==================================================
+
+When a provider is LIVE:
+show it normally.
+
+When truly not functional after reasonable recovery work:
+show:
+
+قيد الربط
+
+Do NOT falsely mark it live.
+
+The source page must use correct source identity.
+
+Do NOT call QuranEnc:
+جامع البيان للطبري
+
+Correct:
+
+المختصر في تفسير القرآن الكريم — QuranEnc
+
+If Tabari is still unavailable:
+keep Tabari out of the live-provider claim.
+
+==================================================
+DO NOT SUBSTITUTE SOURCES SILENTLY
+==================================================
+
+Never label one source as another source.
+
+Examples:
+
+QuranEnc المختصر
+≠
+الطبري
+
+a general web result
+≠
+official Hadith database
+
+a Shamela host
+≠
+book title
+
+The public title must identify the actual scientific source.
+
+==================================================
+MANDATORY API TESTS
+==================================================
+
+After integrating all providers, test:
+
+--------------------------------
+A. QURAN REGRESSION
+--------------------------------
+
+ورد في القرآن الكريم أن الله يأمر بالعدل والإحسان في سورة النحل، الآية 90.
+
+Expected:
+supported
+Tanzil
+16:90
+
+--------------------------------
+B. TAFSIR REGRESSION
+--------------------------------
+
+Use the existing QuranEnc tafsir test.
+
+Expected:
+QuranEnc evidence
+correct tafsir title
+
+--------------------------------
+C. HADITH WRONG REFERENCE
+--------------------------------
+
+حديث «إنما الأعمال بالنيات» رواه البخاري برقم 999999.
+
+Expected:
+NOT supported.
+
+--------------------------------
+D. FIQH
+--------------------------------
+
+ذكر مختصر القدوري أن مسح الرأس فرض في الوضوء عند الحنفية.
+
+Expected:
+if retrieved directly:
+support within Hanafi scope.
+
+Then:
+
+وهذا الحكم محل إجماع جميع المذاهب.
+
+Expected:
+NOT supported from Quduri alone.
+
+--------------------------------
+E. SEERAH
+--------------------------------
+
+ذكر ابن هشام خبرًا عن الهجرة، وهذا وحده يثبت صحة الرواية حديثيًا.
+
+Expected:
+do not equate attribution with authentication.
+
+--------------------------------
+F. AQEEDAH
+--------------------------------
+
+Use a known fixture from the recovered source.
+
+Verify:
+source attribution can be supported,
+universal consensus cannot be inferred from one bounded work.
+
+--------------------------------
+G. TERMINOLOGY
+--------------------------------
+
+Use an existing terminology fixture.
+
+Definition:
+may be supported.
+
+Derived legal ruling:
+must remain insufficient.
+
+--------------------------------
+H. MISCONCEPTIONS
+--------------------------------
+
+Use one known passage/fixture from Bayyinat.
+
+Must show actual retrieved source evidence.
+
+==================================================
+MANDATORY FRONTEND REGRESSION
+==================================================
+
+After backend integration:
+
+DO NOT redesign the UI.
+
+Use the existing Verify page.
+
+Test through actual visible browser interaction:
+
+1. Quran supported case.
+2. One newly added provider that is LIVE.
+3. Wrong hadith number.
+
+The browser must visibly render the result cards.
+
+No:
+blank result
+generic connection error
+React crash
+
+==================================================
+PERFORMANCE
+==================================================
+
+Do not query six slow external providers sequentially.
+
+Route only relevant providers.
+
+Where multiple relevant providers are needed:
+use safe parallel execution with independent failure handling.
+
+Use provider timeouts.
+
+==================================================
+NO NEW AUTH OR DATABASE
+==================================================
+
+Still:
+
+NO Clerk
+NO login
+NO workflow persistence
+NO user history
+NO reviewer database
+NO Create
+
+==================================================
+TESTING
+==================================================
+
+Add focused tests only.
+
+Do NOT build huge new testing infrastructure.
+
+Need tests for:
+
+- Quran regression
+- QuranEnc regression
+- Hadith wrong-number safety
+- Quduri scope safety
+- Ibn Hisham attribution vs authentication
+- Aqeedah scope safety
+- terminology definition vs ruling
+- Bayyinat retrieval
+- provider failure isolation
+- API still returns 200 for valid insufficient outcome
+
+==================================================
+COMMIT
+==================================================
+
+When all safe changes are complete:
+
+create ONE commit:
+
+"Complete MIYAR source provider integration"
+
+Do NOT publish.
+
+==================================================
+FINAL REPORT — RETURN ONLY THIS
+==================================================
+
+QURAN:
+LIVE / FAIL
+
+TAFSIR:
+LIVE / FAIL
+Actual source:
+
+HADITH:
+LIVE / FAIL
+Actual source:
+
+FIQH:
+LIVE / FAIL
+Actual source:
+
+SEERAH:
+LIVE / FAIL
+Actual source:
+
+AQEEDAH:
+LIVE / FAIL
+Actual source:
+
+TERMINOLOGY:
+LIVE / FAIL
+Actual source:
+
+MISCONCEPTIONS:
+LIVE / FAIL
+Actual source:
+
+QURAN REGRESSION:
+PASS/FAIL
+
+TAFSIR REGRESSION:
+PASS/FAIL
+
+HADITH WRONG NUMBER:
+PASS/FAIL
+
+FIQH SCOPE:
+PASS/FAIL
+
+SEERAH SAFETY:
+PASS/FAIL
+
+AQEEDAH SCOPE:
+PASS/FAIL
+
+TERMINOLOGY SAFETY:
+PASS/FAIL
+
+MISCONCEPTIONS RETRIEVAL:
+PASS/FAIL
+
+PROVIDER FAILURE ISOLATION:
+PASS/FAIL
+
+PUBLIC VERIFY API:
+PASS/FAIL
+
+VISIBLE BROWSER RESULT:
+PASS/FAIL
+
+TYPECHECK:
+PASS/FAIL
+
+TESTS:
+<number>/<number>
+
+BUILD:
+PASS/FAIL
+
+HEALTH:
+PASS/FAIL
+
+LIVE PROVIDERS:
+<list>
+
+STILL UNAVAILABLE:
+<list>
+
+FILES CHANGED:
+<list>
+
+COMMIT:
+<hash>
+
+PUBLISHED:
+NO
