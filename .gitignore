@@ -77,3 +77,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Internal pasted Agent prompts
+attached_assets/Pasted-*
