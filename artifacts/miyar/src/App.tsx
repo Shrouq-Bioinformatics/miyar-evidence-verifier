@@ -153,7 +153,7 @@ function Header({ current }: { current: string }) {
 }
 
 function Shell({ children, current }: { children: ReactNode; current: string }) {
-  return <div className="site-shell"><Header current={current} />{children}</div>;
+  return <div className="site-shell"><Header current={current} />{children}<footer className="footer"><div className="wrap footer-inner"><span>مِعيار — التحقق خطوة قبل النشر.</span></div></footer></div>;
 }
 
 function Home() {
@@ -162,15 +162,31 @@ function Home() {
       <main>
         <section className="wrap home-hero">
           <div className="home-copy-wrap">
+            <span className="eyebrow">تحقق بثقة، قبل النشر</span>
             <h1 className="home-title">مِعيار</h1>
             <h2 className="hero-subtitle">منصة للتحقق من المحتوى الإسلامي ومراجعة أدلته قبل النشر.</h2>
+            <p className="hero-copy">حوّل النص إلى ادعاءات قابلة للتحقق، واربط كل ادعاء بالدليل والمصدر والموضع المناسب.</p>
             <div className="hero-actions">
               <Link href="/verify" className="button-primary">تحقق من محتوى <ArrowLeft size={16} strokeWidth={1.8} /></Link>
-              <Link href="/sources" className="text-link">المصادر</Link>
+              <Link href="/sources" className="button-secondary">استعرض المصادر</Link>
+            </div>
+          </div>
+          <div className="hero-visual" aria-hidden="true">
+            <div className="hero-orbit orbit-one" />
+            <div className="hero-orbit orbit-two" />
+            <div className="hero-seal"><img className="hero-logo" src={miyarLogo} alt="" /><span>المعرفة تستحق التثبت</span></div>
+            <span className="hero-note note-top">مصادر مسماة</span>
+            <span className="hero-note note-bottom">دليل لكل ادعاء</span>
+          </div>
+        </section>
+        <section className="workflow-section">
+          <div className="wrap workflow-inner">
+            <div className="workflow-heading"><span className="eyebrow">من النص إلى النتيجة</span><h2>خطوات واضحة. وإحالات قابلة للمراجعة.</h2></div>
+            <div className="workflow" aria-label="المحتوى ثم الادعاءات ثم الأدلة ثم النتيجة">
+              {['المحتوى', 'الادعاءات', 'الأدلة', 'النتيجة'].map((step, index) => <div className="workflow-step" key={step}><span className="workflow-number">{(index + 1).toLocaleString('ar')}</span><strong>{step}</strong>{index < 3 && <span className="workflow-arrow" aria-hidden="true">←</span>}</div>)}
             </div>
           </div>
         </section>
-
       </main>
     </Shell>
   );
@@ -229,16 +245,16 @@ function VerifyPage() {
         <div className="verify-layout">
           <form className="input-panel" onSubmit={submit}>
             <div className="input-heading">
-              <h2>المحتوى</h2>
+              <label htmlFor="content-to-verify">المحتوى</label>
             </div>
             <textarea
+              id="content-to-verify"
               className="content-input"
               dir="auto"
               value={content}
               maxLength={12000}
               onChange={(event) => setContent(event.target.value)}
               placeholder="ألصق المحتوى هنا"
-              aria-label="المحتوى"
               data-testid="input-content"
             />
             <div className="input-footer">
@@ -331,14 +347,25 @@ function SourcesPage() {
         <section className="page-head">
           <h1>المصادر</h1>
         </section>
-        <section className="source-grid" aria-label="المصادر">
-          {sourceFamilies.map((source, index) => (
-            <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
-              <h2>{source.title}</h2>
-              <p><strong>المجال</strong> {source.domain}</p>
-              <span className={`source-scope-label ${source.available ? 'source-online' : 'source-pending'}`}>{source.available ? 'متاح' : 'قيد الربط'}</span>
-            </article>
-          ))}
+        <section className="source-list" aria-label="المصادر">
+          <div className="source-group">
+            <h2 className="source-group-title"><span className="availability-dot available-dot" />مصادر متاحة</h2>
+            {sourceFamilies.map((source, index) => source.available && (
+              <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
+                <h3>{source.title}</h3>
+                <span className="source-scope-label source-online"><span className="availability-dot available-dot" />متاح</span>
+              </article>
+            ))}
+          </div>
+          <div className="source-group">
+            <h2 className="source-group-title"><span className="availability-dot pending-dot" />مصادر قيد الإتاحة</h2>
+            {sourceFamilies.map((source, index) => !source.available && (
+              <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
+                <h3>{source.title}</h3>
+                <span className="source-scope-label source-pending"><span className="availability-dot pending-dot" />قيد الربط</span>
+              </article>
+            ))}
+          </div>
         </section>
       </main>
     </Shell>
@@ -374,7 +401,7 @@ function HistoryPage() {
       <main className="wrap">
         <section className="page-head history-head">
           <div className="history-head-actions">
-            <div><h1>السجل</h1><p className="history-note">يظهر هذا السجل على هذا الجهاز فقط.</p></div>
+            <div><h1>السجل</h1><p className="history-note">عمليات التحقق السابقة على هذا الجهاز.</p></div>
             <button className="button-quiet" type="button" disabled={records.length === 0} onClick={clearHistory} data-testid="button-clear-history"><Trash2 size={14} /> مسح السجل</button>
           </div>
         </section>

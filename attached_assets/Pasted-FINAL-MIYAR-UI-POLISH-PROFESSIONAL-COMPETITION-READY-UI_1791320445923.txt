@@ -1,0 +1,536 @@
+FINAL MIYAR UI POLISH — PROFESSIONAL COMPETITION READY
+UI/UX ONLY — DO NOT TOUCH WORKING LOGIC
+
+Goal:
+Polish the current MIYAR interface so it looks professional, clean, premium, and competition-ready.
+
+IMPORTANT:
+This task is VISUAL/UI ONLY.
+
+DO NOT change:
+- /api/verify/public
+- verification logic
+- source providers
+- OpenAI integration
+- evidence evaluation
+- response contract
+- history logic
+- localStorage behavior
+- routes
+- tests
+- backend
+- source safety rules
+
+DO NOT add new features.
+
+==================================================
+1. GENERAL VISUAL DIRECTION
+==================================================
+
+Style:
+- clean
+- modern
+- elegant
+- calm
+- trustworthy
+- Arabic RTL
+- premium but simple
+- suitable for an Islamic knowledge verification product
+
+Avoid:
+- giant fonts
+- excessive gradients
+- neon colors
+- crowded cards
+- too much text
+- developer-looking UI
+- unnecessary animations
+
+Use:
+- generous whitespace
+- clear hierarchy
+- consistent spacing
+- soft borders
+- subtle shadows
+- rounded corners
+- readable Arabic typography
+
+==================================================
+2. BRANDING
+==================================================
+
+Use the current MIYAR logo prominently.
+
+Header should contain:
+- MIYAR logo
+- الرئيسية
+- تحقق من محتوى
+- السجل
+- المصادر
+
+Keep header compact and elegant.
+
+Make the active page visually clear.
+
+Logo must:
+- keep aspect ratio
+- not be too large
+- not be stretched
+- align well with nav
+
+==================================================
+3. COLOR SYSTEM
+==================================================
+
+Use the existing MIYAR identity.
+
+Main visual palette:
+- deep green / teal
+- warm gold accent
+- off-white / ivory background
+- dark text
+
+Do NOT introduce unrelated colors.
+
+Status colors should be soft and accessible:
+
+موثق:
+green
+
+الدليل غير كافٍ:
+amber / muted gold
+
+تعارض في الإحالة:
+muted red
+
+يحتاج مراجعة بشرية:
+slate / blue-gray
+
+Avoid saturated bright blocks.
+
+==================================================
+4. HOME PAGE
+==================================================
+
+Make the homepage feel polished and simple.
+
+Hero structure:
+
+MIYAR logo
+
+Title:
+"مِعيار"
+
+Subtitle:
+"منصة للتحقق من المحتوى الإسلامي ومراجعة أدلته قبل النشر."
+
+Short supporting line only:
+"حوّل النص إلى ادعاءات قابلة للتحقق، واربط كل ادعاء بالدليل والمصدر والموضع المناسب."
+
+Primary CTA:
+"تحقق من محتوى"
+
+Secondary CTA:
+"استعرض المصادر"
+
+Do not add long paragraphs.
+
+Use a clean visual section showing the workflow:
+
+المحتوى
+↓
+الادعاءات
+↓
+الأدلة
+↓
+النتيجة
+
+Use simple icons or minimal cards.
+
+==================================================
+5. VERIFY PAGE
+==================================================
+
+This is the most important page.
+
+Make it visually excellent.
+
+Top:
+Title:
+"تحقق من محتوى"
+
+Subtitle:
+"ألصق النص المراد التحقق منه، وسيعرض مِعيار الادعاءات والنتائج والأدلة المرتبطة بها."
+
+Main input card:
+- centered
+- large textarea
+- comfortable padding
+- clear Arabic placeholder
+- visible character/text area
+- not too tall initially
+
+Button:
+"تحقق"
+
+Make it the clear primary action.
+
+Loading state:
+"جارٍ التحقق..."
+
+Use a subtle spinner or progress indicator.
+
+Do NOT block the whole page with a giant loader.
+
+==================================================
+6. RESULTS PAGE / RESULT AREA
+==================================================
+
+Make the verification result easy to scan.
+
+Top summary card should show:
+
+"نتيجة التحقق"
+
+Then status count chips:
+- موثق
+- الدليل غير كافٍ
+- تعارض في الإحالة
+- يحتاج مراجعة بشرية
+
+Use compact badges.
+
+Each claim card should have strong hierarchy:
+
+Top row:
+- نوع الادعاء
+- status badge
+
+Then:
+- الادعاء text in larger readable font
+- short explanation / reason
+
+Then divider
+
+Section:
+"الأدلة والمراجع"
+
+For each evidence item show:
+
+المصدر:
+<source>
+
+الموضع:
+<locator>
+
+الدليل:
+<excerpt>
+
+Button/link:
+"فتح المصدر"
+
+Make source name and locator visually distinct.
+
+Do not let long source text stretch the page excessively.
+
+Use max-width and readable line length.
+
+==================================================
+7. RESULT STATUS VISUALS
+==================================================
+
+Status badge design:
+
+موثق
+- soft green background
+- green border/text
+- check icon
+
+الدليل غير كافٍ
+- soft amber background
+- amber text
+- info/warning icon
+
+تعارض في الإحالة
+- soft muted red background
+- red text
+- alert icon
+
+يحتاج مراجعة بشرية
+- soft slate/blue background
+- dark slate text
+- review icon
+
+Keep icons small.
+
+Do not make statuses look like error alerts unless they truly are errors.
+
+==================================================
+8. SOURCES PAGE
+==================================================
+
+Make the source list professional.
+
+Title:
+"المصادر"
+
+Each source as a clean card or table row with:
+
+- اسم المصدر
+- المجال
+- الحالة
+
+Current live:
+- القرآن الكريم — Tanzil
+- المختصر في تفسير القرآن الكريم
+- صحيح البخاري وصحيح مسلم
+- السيرة النبوية لابن هشام
+
+Pending:
+- كتاب السنة لعبدالله بن أحمد بن حنبل
+- مختصر القدوري
+- بينات
+- قاموس المحتوى الإسلامي — الجمهرة
+
+Status:
+"متاح"
+or
+"قيد الربط"
+
+Do not show technical implementation details.
+
+Use subtle badges for status.
+
+==================================================
+9. HISTORY PAGE
+==================================================
+
+Title:
+"السجل"
+
+Short helper text:
+"عمليات التحقق السابقة على هذا الجهاز."
+
+Each history item:
+- short preview of original text
+- date/time
+- compact result summary
+- buttons:
+  "عرض النتيجة"
+  "حذف"
+
+Top action:
+"مسح السجل"
+
+Make destructive actions visually secondary and subtle.
+
+Empty state:
+"لا توجد عمليات تحقق سابقة."
+
+Button:
+"ابدأ التحقق"
+
+==================================================
+10. TYPOGRAPHY
+==================================================
+
+Use a clean Arabic font already available in the project/browser.
+
+Hierarchy:
+
+Page title:
+large but not oversized
+
+Section headings:
+medium
+
+Body:
+comfortable reading size
+
+Status badges:
+small
+
+Avoid:
+- text smaller than readable
+- all-caps English UI
+- inconsistent font weights
+
+Arabic alignment:
+RTL and right-aligned where appropriate.
+
+==================================================
+11. SPACING SYSTEM
+==================================================
+
+Apply a consistent spacing scale.
+
+Use:
+8px
+12px
+16px
+24px
+32px
+48px
+
+Avoid random gaps.
+
+Cards should have consistent padding.
+
+==================================================
+12. RESPONSIVE DESIGN
+==================================================
+
+Desktop:
+max content width around 1100–1200px
+
+Tablet:
+stack cards cleanly
+
+Mobile:
+- navbar remains usable
+- no horizontal scrolling
+- result cards full width
+- buttons large enough to tap
+- status chips wrap gracefully
+- Arabic text does not overflow
+- source excerpts remain readable
+
+Test responsive layout at:
+375px
+768px
+1440px
+
+==================================================
+13. ACCESSIBILITY
+==================================================
+
+Ensure:
+- sufficient contrast
+- keyboard focus visible
+- buttons have hover/focus states
+- links clearly distinguishable
+- status is not indicated by color alone
+- form labels exist
+
+==================================================
+14. MICRO-INTERACTIONS
+==================================================
+
+Use only subtle transitions:
+
+- button hover
+- card hover if appropriate
+- status fade-in
+- smooth loading/result appearance
+
+Duration:
+150–250ms
+
+No flashy animations.
+
+==================================================
+15. FOOTER
+==================================================
+
+Keep footer minimal.
+
+Example:
+"مِعيار — التحقق خطوة قبل النشر."
+
+Do not add long disclaimers.
+
+==================================================
+16. REMOVE VISUAL CLUTTER
+==================================================
+
+Remove:
+- duplicated headings
+- repeated explanatory paragraphs
+- technical helper text
+- unnecessary borders
+- excessive empty boxes
+- oversized cards
+- debug/status text not meant for users
+
+==================================================
+17. PROTECT FUNCTIONALITY
+==================================================
+
+After styling:
+
+Confirm:
+- Verify still works
+- results still display
+- source links still work
+- history still saves and opens
+- delete/clear history still work
+- sources page still works
+- no API calls changed
+- no route changed
+
+==================================================
+18. FINAL BROWSER CHECK
+==================================================
+
+Test these screens:
+
+1. Home
+2. Verify empty state
+3. Verify loading state
+4. Verify successful Quran result
+5. Verify insufficient/mismatch result
+6. Sources
+7. History with entries
+8. History empty state
+9. Mobile width
+
+==================================================
+19. FINAL REPORT
+==================================================
+
+Return ONLY:
+
+UI_POLISH_COMPLETE:
+PASS/FAIL
+
+HOME_POLISHED:
+PASS/FAIL
+
+VERIFY_POLISHED:
+PASS/FAIL
+
+RESULTS_POLISHED:
+PASS/FAIL
+
+SOURCES_POLISHED:
+PASS/FAIL
+
+HISTORY_POLISHED:
+PASS/FAIL
+
+MOBILE_RESPONSIVE:
+PASS/FAIL
+
+RTL_CORRECT:
+PASS/FAIL
+
+ACCESSIBILITY_CHECK:
+PASS/FAIL
+
+VERIFY_FUNCTIONALITY_PRESERVED:
+PASS/FAIL
+
+HISTORY_FUNCTIONALITY_PRESERVED:
+PASS/FAIL
+
+FILES_CHANGED:
+<list>
+
+BACKEND_CHANGED:
+NO
+
+API_CONTRACT_CHANGED:
+NO
+
+PUBLISHED:
+NO
