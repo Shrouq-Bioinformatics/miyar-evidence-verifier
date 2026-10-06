@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { Link, Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
-import { ArrowLeft, ArrowUpLeft, FileCheck2, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, ArrowUpLeft, FileCheck2, LoaderCircle, Trash2 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import NotFound from '@/pages/not-found';
+import miyarLogo from '@assets/0_image-10-1_1791311050480.png';
 
 type ClaimStatus = 'supported' | 'insufficient' | 'mismatch' | 'needs_review';
 type Evidence = {
@@ -31,6 +32,50 @@ type VerificationResponse = {
     needsReview: number;
   };
 };
+type HistoryRecord = {
+  id: string;
+  originalContent: string;
+  createdAt: string;
+  resultSummary: string;
+  counts: VerificationResponse['counts'];
+  claims: Claim[];
+};
+const HISTORY_KEY = 'miyar_verification_history';
+const HISTORY_LIMIT = 30;
+
+function readHistory(): HistoryRecord[] {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(HISTORY_KEY) ?? '[]');
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((value): value is HistoryRecord => {
+      if (!isRecord(value) || typeof value.id !== 'string' ||
+        typeof value.originalContent !== 'string' || typeof value.createdAt !== 'string' ||
+        !Number.isFinite(Date.parse(value.createdAt)) ||
+        typeof value.resultSummary !== 'string' || !Array.isArray(value.claims) ||
+        !value.claims.every(validClaim) || !isRecord(value.counts)) return false;
+      const counts = value.counts;
+      return ['supported', 'insufficient', 'mismatch', 'needsReview'].every((key) =>
+        typeof counts[key] === 'number' && Number.isFinite(counts[key]));
+    }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)).slice(0, HISTORY_LIMIT);
+  } catch {
+    return [];
+  }
+}
+function saveHistoryRecord(result: VerificationResponse) {
+  try {
+    const next: HistoryRecord[] = [{
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      originalContent: result.originalContent,
+      createdAt: new Date().toISOString(),
+      resultSummary: result.summary,
+      counts: result.counts,
+      claims: result.claims,
+    }, ...readHistory()].slice(0, HISTORY_LIMIT);
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+  } catch {
+    // History is optional; keep successful verification independent from storage.
+  }
+}
 
 const STATUS: Record<ClaimStatus, { label: string; color: string; bg: string }> = {
   supported: { label: 'موثق', color: '#286b4d', bg: '#e9f1eb' },
@@ -41,23 +86,19 @@ const STATUS: Record<ClaimStatus, { label: string; color: string; bg: string }> 
 
 type SourceFamily = {
   title: string;
-  source: string;
+  domain: string;
   available: boolean;
-  statusLabel?: string;
-  href: string | null;
-  scope: string;
-  limit: string;
 };
 
 const sourceFamilies: SourceFamily[] = [
-  { title: 'القرآن الكريم', source: 'نص Tanzil العربي — محلي', available: true, href: 'https://tanzil.net', scope: 'نص الآيات وأرقام السور والآيات.', limit: 'لا يثبت التفسير أو تنزيل الآية على واقعة بعينها بمجرد ورود النص.' },
-  { title: 'التفسير', source: 'QuranEnc — المختصر في تفسير القرآن الكريم', available: true, statusLabel: 'متصل خارجيًا', href: 'https://quranenc.com/ar/browse/arabic_mokhtasar', scope: 'التفسير الموجز المرتبط بآية قرآنية محددة.', limit: 'هذا ليس جامع البيان للطبري؛ وشرح آية بعينها لا يثبت تلقائيًا ادعاءً أوسع.' },
-  { title: 'الحديث', source: 'جامع خادم الحرمين الشريفين للسنة النبوية المطهرة — حديث ويب', available: true, statusLabel: 'متصل خارجيًا', href: 'https://sunna.alifta.gov.sa/Search/TextSearchView', scope: 'نصوص صحيح البخاري وصحيح مسلم التي يعثر عليها البحث الحرفي في المصدر.', limit: 'يُعرض رقم سجل حديث ويب فقط؛ قد تختلف أرقام الطبعات، ووجود الرواية لا يثبت صحتها أو حكمها.' },
-  { title: 'العقيدة', source: 'كتاب السنة لعبدالله بن أحمد بن حنبل', available: false, href: null, scope: 'النصوص والتقريرات في أبواب الاعتقاد.', limit: 'تختلف المصطلحات والمناهج؛ يجب نسبة القول إلى مصدره وسياقه.' },
-  { title: 'الفقه', source: 'مختصر القدوري في الفقه الحنفي', available: false, href: null, scope: 'الأقوال الفقهية المنقولة ومظانها.', limit: 'لا يُفهم النقل على أنه قول متفق عليه؛ قد تتعدد المذاهب والروايات.' },
-  { title: 'السيرة', source: 'السيرة النبوية لابن هشام — حديث ويب', available: true, statusLabel: 'متصل خارجيًا', href: 'https://sunna.alifta.gov.sa/Book/Details?bookId=81', scope: 'مواضع النص التي تتطابق عناوين أبوابها مع موضوع الادعاء.', limit: 'النقل التاريخي يثبت ورود الخبر في النص فقط، ولا يثبت صحة الحديث أو الإسناد.' },
-  { title: 'الشبهات', source: 'بينات — مواد معالجة الشبهات', available: false, href: null, scope: 'الردود المنشورة على الشبهات المحددة.', limit: 'ينبغي عرض الشبهة والجواب في سياقهما وعدم تعميمهما على مسائل أخرى.' },
-  { title: 'المصطلحات', source: 'قاموس المحتوى الإسلامي — الجمهرة', available: false, href: null, scope: 'التعريفات والمصطلحات الواردة في المحتوى الإسلامي.', limit: 'التعريف لا يحسم وحده الخلاف في الاستعمال أو الحكم.' },
+  { title: 'القرآن الكريم — Tanzil', domain: 'القرآن', available: true },
+  { title: 'المختصر في تفسير القرآن الكريم', domain: 'التفسير', available: true },
+  { title: 'صحيح البخاري وصحيح مسلم', domain: 'الحديث', available: true },
+  { title: 'كتاب السنة لعبدالله بن أحمد بن حنبل', domain: 'العقيدة', available: false },
+  { title: 'مختصر القدوري', domain: 'الفقه', available: false },
+  { title: 'السيرة النبوية لابن هشام', domain: 'السيرة', available: true },
+  { title: 'بينات', domain: 'الشبهات', available: false },
+  { title: 'قاموس المحتوى الإسلامي — الجمهرة', domain: 'المصطلحات', available: false },
 ];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -98,12 +139,13 @@ function Header({ current }: { current: string }) {
     <header className="topbar">
       <div className="nav-inner">
         <Link href="/" className="brand" aria-label="مِعيار — الصفحة الرئيسية">
-          <span className="brand-mark"><span>م</span></span>
-          <span><span className="brand-name">مِعيار</span><span className="brand-caption">تحقّق من النص قبل نشره</span></span>
+          <img className="brand-logo" src={miyarLogo} alt="" aria-hidden="true" />
+          <span className="brand-name">مِعيار</span>
         </Link>
         <nav className="nav-links" aria-label="التنقل الرئيسي">
           <Link href="/" aria-current={current === '/' ? 'page' : undefined}>الرئيسية</Link>
           <Link href="/verify" aria-current={current === '/verify' ? 'page' : undefined} className={current === '/verify' ? 'nav-cta' : ''}>تحقق من محتوى</Link>
+          <Link href="/history" aria-current={current === '/history' ? 'page' : undefined}>السجل</Link>
           <Link href="/sources" aria-current={current === '/sources' ? 'page' : undefined}>المصادر</Link>
         </nav>
       </div>
@@ -111,19 +153,8 @@ function Header({ current }: { current: string }) {
   );
 }
 
-function Footer() {
-  return (
-    <footer className="footer">
-      <div className="wrap footer-inner">
-        <span>مِعيار — أداة مساعدة للتحقق من النقول الإسلامية</span>
-        <span>مِعيار أداة مساعدة للتحقق من الأدلة والإحالات، ولا يستبدل المختص عند الحاجة إلى حكم شرعي شخصي أو مراجعة علمية متخصصة.</span>
-      </div>
-    </footer>
-  );
-}
-
 function Shell({ children, current }: { children: ReactNode; current: string }) {
-  return <div className="site-shell"><Header current={current} />{children}<Footer /></div>;
+  return <div className="site-shell"><Header current={current} />{children}</div>;
 }
 
 function Home() {
@@ -132,60 +163,15 @@ function Home() {
       <main>
         <section className="wrap home-hero">
           <div className="home-copy-wrap">
-            <div className="eyebrow">للمحرر الذي يراجع قبل أن ينشر</div>
             <h1 className="home-title">مِعيار</h1>
-            <h2 className="hero-subtitle">منصة لضمان جودة المحتوى الإسلامي قبل النشر</h2>
-            <p className="hero-copy">يحلل مِعيار المحتوى إلى ادعاءات قابلة للتحقق، ثم يربط كل ادعاء بالمصدر والدليل المناسب، ويوضح ما تدعمه المصادر وما يحتاج إلى مزيد من التحقق أو المراجعة.</p>
+            <h2 className="hero-subtitle">منصة للتحقق من المحتوى الإسلامي ومراجعة أدلته قبل النشر.</h2>
             <div className="hero-actions">
               <Link href="/verify" className="button-primary">تحقق من محتوى <ArrowLeft size={16} strokeWidth={1.8} /></Link>
-              <Link href="/sources" className="text-link">استعرض المصادر</Link>
-            </div>
-            <p className="hero-note">لا حساب. لا حفظ للنصوص. تحقّق مباشر في الصفحة.</p>
-          </div>
-          <div className="hero-visual" aria-label="شعار مِعيار">
-            <span className="orbit-label orbit-top">الدليل قبل الاستنتاج</span>
-            <span className="orbit-label orbit-bottom">كل ادعاء على حدة</span>
-            <div className="seal">
-              <div className="seal-mark"><span>م</span></div>
-              <span className="seal-label">ميزان النقول</span>
-              <span className="seal-word">مِعيار</span>
+              <Link href="/sources" className="text-link">المصادر</Link>
             </div>
           </div>
         </section>
 
-        <section className="principles">
-          <div className="wrap">
-            <div className="principles-head">
-              <h2>تحقق محدد، لا فتوى ولا إعادة صياغة</h2>
-              <p>الدليل أولًا، مع توضيح حدود كل نتيجة.</p>
-            </div>
-            <div className="principle-list">
-              <article className="principle"><span className="principle-num">01 / خريطة الدليل</span><h3>ربط الادعاء بمصدره</h3><p>تربط كل ادعاء بالمصدر والموضع والدليل المرتبط به.</p></article>
-              <article className="principle"><span className="principle-num">02 / فجوة الدليل</span><h3>بيان ما لا يكفي</h3><p>توضح متى لا تكفي الأدلة المتاحة لإثبات الادعاء.</p></article>
-              <article className="principle"><span className="principle-num">03 / تعارض الإحالة</span><h3>كشف تعارض الإحالة</h3><p>تكشف الحالات التي لا تطابق فيها الإحالة أو الرقم الادعاء المذكور.</p></article>
-              <article className="principle"><span className="principle-num">04 / حالة الدليل</span><h3>حالة واضحة للدليل</h3><p>تميّز بين ما تؤيده المصادر وما يحتاج إلى مزيد من التحقق أو المراجعة.</p></article>
-            </div>
-            <p className="principles-highlight">لا يكفي وجود مرجع؛ المهم أن يثبت المرجع الادعاء نفسه.</p>
-          </div>
-        </section>
-
-        <section className="wrap home-method">
-          <div className="section-intro">
-            <div><div className="eyebrow">طريقة العمل</div><h2>من النص إلى نتيجة مفهومة</h2></div>
-            <p>مِعيار أداة للمراجعة الأولية تساعد الناشر على فحص النقول قبل اعتمادها.</p>
-          </div>
-          <div className="steps">
-            <article className="step"><span className="step-num">الخطوة ١</span><h3>ألصق النص</h3><p>أرسل المقطع كما هو، حتى يبقى الأصل محفوظاً كما وصل.</p></article>
-            <article className="step"><span className="step-num">الخطوة ٢</span><h3>راجع الادعاءات</h3><p>تظهر نتيجة منفصلة لكل ادعاء، مع بيان سببها ومجالها.</p></article>
-            <article className="step"><span className="step-num">الخطوة ٣</span><h3>افحص الإحالة</h3><p>اقرأ الدليل في سياقه، وراجع أهل الاختصاص عند الحاجة.</p></article>
-          </div>
-        </section>
-        <section className="home-bottom">
-          <div className="wrap bottom-inner">
-            <div><h2>ابدأ من النص الذي بين يديك.</h2><p>مِعيار لا يكتب المحتوى بدل المستخدم؛ بل يتحقق مما سيُنشر.</p></div>
-            <Link href="/verify" className="button-primary">تحقق من محتوى <ArrowLeft size={16} /></Link>
-          </div>
-        </section>
       </main>
     </Shell>
   );
@@ -226,6 +212,7 @@ function VerifyPage() {
       }
       if (!validResponse(payload)) throw new Error('تعذّر قراءة نتيجة التحقق. حاول مرة أخرى.');
       setResult(payload);
+      saveHistoryRecord(payload);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'تعذّر الاتصال بخدمة التحقق. حاول مرة أخرى.');
     } finally {
@@ -237,15 +224,13 @@ function VerifyPage() {
     <Shell current="/verify">
       <main className="wrap">
         <section className="page-head">
-          <div className="eyebrow">تحقق مباشر، بلا حفظ</div>
           <h1>تحقق من محتوى</h1>
-          <p>ألصق النص الذي تريد مراجعته، وسيحلله مِعيار إلى ادعاءات ويتحقق من الأدلة والمراجع المرتبطة بها.</p>
+          <p>ألصق النص المراد التحقق منه، وسيعرض مِعيار الادعاءات والنتائج والأدلة المرتبطة بها.</p>
         </section>
         <div className="verify-layout">
           <form className="input-panel" onSubmit={submit}>
             <div className="input-heading">
-              <h2>النص المراد التحقق منه</h2>
-              <span>{content.length.toLocaleString('ar')} / ١٢٬٠٠٠ حرف</span>
+              <h2>المحتوى</h2>
             </div>
             <textarea
               className="content-input"
@@ -253,67 +238,20 @@ function VerifyPage() {
               value={content}
               maxLength={12000}
               onChange={(event) => setContent(event.target.value)}
-              placeholder="ألصق هنا المحتوى الإسلامي المراد التحقق منه..."
-              aria-label="النص المراد التحقق منه"
+              placeholder="ألصق المحتوى هنا"
+              aria-label="المحتوى"
               data-testid="input-content"
             />
             <div className="input-footer">
-              <span className="input-help">يُرسل النص إلى OpenAI للتحليل؛ ولا يحتفظ مِعيار بسجل أو تاريخ للطلبات.</span>
               <button className="submit-button" type="submit" disabled={!content.trim() || loading} data-testid="button-verify">
-                {loading ? <><LoaderCircle className="animate-spin" size={17} /> جارٍ تحليل المحتوى والتحقق من الأدلة...</> : <>تحقق <ArrowLeft size={16} /></>}
+                {loading ? <><LoaderCircle className="animate-spin" size={17} /> جارٍ التحقق...</> : <>تحقق <ArrowLeft size={16} /></>}
               </button>
             </div>
             {error && <div className="error-box" role="alert" data-testid="error-verification">{error}</div>}
           </form>
-          <aside className="verify-aside">
-            <div className="side-note"><h3>كيف تقرأ النتيجة؟</h3><p>كل نتيجة تخص ادعاءً بعينه. افحص السبب والإحالة معاً، ولا تعمم حكماً على بقية النص.</p></div>
-            <ul className="limits-list">
-              <li>لا يصدر مِعيار فتوى أو حكماً شرعياً.</li>
-              <li>عدم كفاية الدليل لا يعني ثبوت خلاف الادعاء.</li>
-              <li>الإحالة لا تغني عن مراجعة المصدر في سياقه.</li>
-            </ul>
-          </aside>
         </div>
         {result && (
-          <section className="results" ref={resultsRef} aria-live="polite" data-testid="results-verification">
-            <div className="results-header">
-              <div><h2>ملخص التحقق</h2><p>نتيجة آلية للمراجعة الأولية، وليست فتوى شرعية.</p></div>
-              <span className="results-mark"><FileCheck2 size={14} style={{ verticalAlign: 'middle', marginLeft: 6 }} /> اكتمل فحص النص</span>
-            </div>
-            <div className="summary-box"><strong>خلاصة الفحص</strong><p>{result.summary}</p></div>
-            <div className="counts" aria-label="ملخص عدد الادعاءات">
-              <Count status="supported" count={result.counts.supported} />
-              <Count status="insufficient" count={result.counts.insufficient} />
-              <Count status="mismatch" count={result.counts.mismatch} />
-              <Count status="needs_review" count={result.counts.needsReview} />
-            </div>
-            <h3 className="claims-title">نتيجة كل ادعاء ({result.claims.length.toLocaleString('ar')})</h3>
-            {result.claims.map((claim, index) => {
-              const meta = STATUS[claim.status];
-              return (
-                <article className="claim-card" key={claim.id} style={{ '--status-color': meta.color, '--status-bg': meta.bg } as CSSProperties} data-testid={`claim-result-${claim.id}`}>
-                  <div className="claim-main">
-                    <div className="claim-top"><span className="claim-domain">الادعاء { (index + 1).toLocaleString('ar') } · {claim.domain}</span><span className="status-tag"><span className="status-caption">الحالة:</span> {meta.label}</span></div>
-                    <p className="claim-text">{claim.text}</p>
-                    <p className="claim-reason"><strong>سبب النتيجة:</strong> {claim.reason}</p>
-                  </div>
-                  <div className="evidence-list">
-                    {claim.evidence.length ? claim.evidence.map((evidence, evidenceIndex) => (
-                      <div className="evidence" key={`${claim.id}-${evidenceIndex}`}>
-                        <div className="evidence-head"><strong>المصدر: {evidence.sourceTitle}</strong><span className="evidence-locator">الموضع: {evidence.locator}</span></div>
-                        <p><strong>الدليل:</strong> {evidence.excerpt}</p>
-                        {evidence.url && <a href={evidence.url} target="_blank" rel="noreferrer">فتح المصدر <ArrowUpLeft size={12} style={{ verticalAlign: 'middle' }} /></a>}
-                      </div>
-                    )) : <div className="no-evidence">لم يجد مِعيار دليلًا كافيًا للتحقق من هذا الادعاء ضمن المصادر المتاحة.</div>}
-                  </div>
-                </article>
-              );
-            })}
-            <section className="original-content" aria-label="المحتوى محل التحقق">
-              <h3>المحتوى محل التحقق</h3>
-              <p dir="auto">{result.originalContent}</p>
-            </section>
-          </section>
+          <ResultView result={result} refElement={resultsRef} />
         )}
       </main>
     </Shell>
@@ -325,35 +263,148 @@ function Count({ status, count }: { status: ClaimStatus; count: number }) {
   return <span className="count-pill" style={{ '--status-color': meta.color } as CSSProperties}><span className="count-dot" />{meta.label}<strong>{count.toLocaleString('ar')}</strong></span>;
 }
 
+function publicResultText(text: string): string {
+  return text
+    .replace(/HadithWeb/gi, 'المصدر')
+    .replace(/حديث ويب/g, 'المصدر')
+    .replace(/QuranEnc/gi, 'مصدر التفسير')
+    .replace(/Tanzil/gi, 'المصحف');
+}
+
+function publicSourceTitle(title: string): string {
+  if (/quranenc/i.test(title)) return 'المختصر في تفسير القرآن الكريم';
+  if (/tanzil/i.test(title)) return 'القرآن الكريم';
+  if (/hadithweb|حديث ويب/i.test(title)) {
+    return title.split(/\s+[—–-]\s+/)[0].trim() || 'المصدر';
+  }
+  return title;
+}
+
+function ResultView({ result, refElement }: { result: VerificationResponse; refElement?: RefObject<HTMLElement | null> }) {
+  return (
+    <section className="results" ref={refElement} aria-live="polite" data-testid="results-verification">
+      <div className="results-header">
+        <div><h2>نتيجة التحقق</h2></div>
+        <span className="results-mark"><FileCheck2 size={14} style={{ verticalAlign: 'middle', marginLeft: 6 }} /> اكتمل التحقق</span>
+      </div>
+      <div className="summary-box"><strong>الخلاصة</strong><p>{publicResultText(result.summary)}</p></div>
+      <div className="counts" aria-label="ملخص عدد الادعاءات">
+        <Count status="supported" count={result.counts.supported} />
+        <Count status="insufficient" count={result.counts.insufficient} />
+        <Count status="mismatch" count={result.counts.mismatch} />
+        <Count status="needs_review" count={result.counts.needsReview} />
+      </div>
+      <h3 className="claims-title">الادعاءات ({result.claims.length.toLocaleString('ar')})</h3>
+      {result.claims.map((claim, index) => {
+        const meta = STATUS[claim.status];
+        return (
+          <article className="claim-card" key={`${claim.id}-${index}`} style={{ '--status-color': meta.color, '--status-bg': meta.bg } as CSSProperties} data-testid={`claim-result-${claim.id}`}>
+            <div className="claim-main">
+              <div className="claim-top"><span className="claim-domain">الادعاء { (index + 1).toLocaleString('ar') } · {claim.domain}</span><span className="status-tag">{meta.label}</span></div>
+              <p className="claim-text">{claim.text}</p>
+              <p className="claim-reason">{publicResultText(claim.reason)}</p>
+            </div>
+            <div className="evidence-list">
+              <strong className="evidence-section-label">الأدلة والمراجع</strong>
+              {claim.evidence.length ? claim.evidence.map((evidence, evidenceIndex) => (
+                <div className="evidence" key={`${claim.id}-${evidenceIndex}`}>
+                  <div className="evidence-head"><strong>{publicSourceTitle(evidence.sourceTitle)}</strong><span className="evidence-locator">{publicResultText(evidence.locator)}</span></div>
+                  <p>{evidence.excerpt}</p>
+                  {evidence.url && <a href={evidence.url} target="_blank" rel="noreferrer">فتح المصدر <ArrowUpLeft size={12} style={{ verticalAlign: 'middle' }} /></a>}
+                </div>
+              )) : <div className="no-evidence">لا تتوفر أدلة مرتبطة بهذا الادعاء.</div>}
+            </div>
+          </article>
+        );
+      })}
+      <section className="original-content" aria-label="المحتوى">
+        <h3>المحتوى</h3>
+        <p dir="auto">{result.originalContent}</p>
+      </section>
+    </section>
+  );
+}
+
 function SourcesPage() {
   return (
     <Shell current="/sources">
       <main className="wrap">
         <section className="page-head">
-          <div className="eyebrow">المراجع وحدود الاستدلال</div>
-          <h1>ما الذي يمكن للمصدر أن يثبته؟</h1>
-          <p>يعرض مِعيار نطاق المصدر وحدود استخدامه. نص Tanzil وتفسير QuranEnc ونصوص البخاري ومسلم والسيرة في حديث ويب موصولة؛ وتبقى بقية المصادر قيد الربط.</p>
+          <h1>المصادر</h1>
         </section>
-        <section className="source-intro">
-          <p>تظهر حالة كل مصدر بوضوح؛ لا تُعرض المصادر قيد الربط على أنها أدلة مستخدمة في نتيجة التحقق.</p>
-          <span className="source-index">٠٨ / عائلات المصادر</span>
-        </section>
-        <section className="source-grid" aria-label="عائلات المصادر وحدودها">
+        <section className="source-grid" aria-label="المصادر">
           {sourceFamilies.map((source, index) => (
             <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
-              <div className="source-item-top"><span className="source-num">{String(index + 1).padStart(2, '0')}</span><span className={`source-scope-label ${source.available ? 'source-online' : 'source-pending'}`}>{source.available ? (source.statusLabel ?? 'متصل محليًا') : 'قيد الربط'}</span></div>
               <h2>{source.title}</h2>
-              <p><strong>المصدر:</strong> {source.source}</p>
-              <p><strong>نطاق الاستخدام:</strong> {source.scope}</p>
-              <p><strong>حدود المصدر:</strong> {source.limit}</p>
-              {source.href && <a className="source-link" href={source.href} target="_blank" rel="noreferrer">فتح المصدر <ArrowUpLeft size={12} style={{ verticalAlign: 'middle' }} /></a>}
+              <p><strong>المجال</strong> {source.domain}</p>
+              <span className={`source-scope-label ${source.available ? 'source-online' : 'source-pending'}`}>{source.available ? 'متاح' : 'قيد الربط'}</span>
             </article>
           ))}
         </section>
-        <aside className="sources-caveat">
-          <span className="caveat-symbol">!</span>
-          <div><h3>الإحالة ليست حكماً نهائياً</h3><p>وجود نص في مصدر ما لا يثبت تلقائياً صحة نسبته أو صحة كل تفسير واستنتاج مبني عليه. عند اختلاف الروايات أو الأقوال، يلزم الرجوع إلى المصدر كاملاً وسياقه، واستشارة أهل الاختصاص.</p></div>
-        </aside>
+      </main>
+    </Shell>
+  );
+}
+
+function HistoryPage() {
+  const [records, setRecords] = useState<HistoryRecord[]>([]);
+  const [opened, setOpened] = useState<HistoryRecord | null>(null);
+  useEffect(() => {
+    const saved = readHistory();
+    setRecords(saved);
+    try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(saved)); } catch { /* History remains optional. */ }
+  }, []);
+  function persist(next: HistoryRecord[]) {
+    setRecords(next);
+    setOpened((current) => current && next.some((record) => record.id === current.id) ? current : null);
+    try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); } catch { /* Keep the page usable when storage is unavailable. */ }
+  }
+  function clearHistory() {
+    if (!records.length || !window.confirm('هل تريد مسح جميع السجلات؟')) return;
+    persist([]);
+  }
+  const result = opened ? {
+    status: 'COMPLETE' as const,
+    originalContent: opened.originalContent,
+    summary: opened.resultSummary,
+    counts: opened.counts,
+    claims: opened.claims,
+  } : null;
+  return (
+    <Shell current="/history">
+      <main className="wrap">
+        <section className="page-head history-head">
+          <div className="history-head-actions">
+            <div><h1>السجل</h1><p className="history-note">يظهر هذا السجل على هذا الجهاز فقط.</p></div>
+            <button className="button-quiet" type="button" disabled={records.length === 0} onClick={clearHistory} data-testid="button-clear-history"><Trash2 size={14} /> مسح السجل</button>
+          </div>
+        </section>
+        {records.length ? (
+          <section className="history-list" aria-label="عمليات التحقق السابقة">
+            {records.map((record) => (
+              <article className="history-card" key={record.id} data-testid={`history-record-${record.id}`}>
+                <div>
+                  <h2>{record.originalContent.trim().slice(0, 95)}{record.originalContent.trim().length > 95 ? '…' : ''}</h2>
+                  <div className="history-date">{new Intl.DateTimeFormat('ar', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(record.createdAt))}</div>
+                  <p className="history-summary">{publicResultText(record.resultSummary)}</p>
+                  <div className="history-counts">
+                    <span className="history-count">موثق: {record.counts.supported.toLocaleString('ar')}</span>
+                    <span className="history-count">غير كافٍ: {record.counts.insufficient.toLocaleString('ar')}</span>
+                    <span className="history-count">تعارض: {record.counts.mismatch.toLocaleString('ar')}</span>
+                    <span className="history-count">للمراجعة: {record.counts.needsReview.toLocaleString('ar')}</span>
+                  </div>
+                </div>
+                <div className="history-actions">
+                  <button className="button-primary" type="button" onClick={() => { setOpened(record); window.setTimeout(() => document.getElementById('saved-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0); }} data-testid={`button-open-history-${record.id}`}>عرض النتيجة</button>
+                  <button className="delete-button" type="button" onClick={() => persist(records.filter((item) => item.id !== record.id))} data-testid={`button-delete-history-${record.id}`}>حذف</button>
+                </div>
+              </article>
+            ))}
+          </section>
+        ) : (
+          <section className="empty-state"><p>لا توجد عمليات تحقق سابقة.</p><Link href="/verify" className="button-primary">ابدأ التحقق <ArrowLeft size={15} /></Link></section>
+        )}
+        {result && <div id="saved-result" className="history-results"><ResultView result={result} /></div>}
       </main>
     </Shell>
   );
@@ -366,6 +417,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/verify" component={VerifyPage} />
+        <Route path="/history" component={HistoryPage} />
         <Route path="/sources" component={SourcesPage} />
         <Route component={NotFound} />
       </Switch>
