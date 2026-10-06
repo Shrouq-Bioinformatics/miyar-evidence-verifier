@@ -8,6 +8,29 @@ out-tsc
 .expo
 .expo-shared
 
+# Local secrets and environment-specific values
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data, diagnostics, and internal agent state
+.agents/
+*.log
+logs/
+coverage/
+*.dump
+*.backup
+*.bak
+*.sql
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.db
+private-data/
+user-data/
+
 # dependencies
 node_modules
 

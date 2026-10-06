@@ -1,1 +1,0 @@
-- [Source provenance](source-provenance.md) — only mark a provider live for the exact working corpus and edition; generic web summaries are not direct source text.

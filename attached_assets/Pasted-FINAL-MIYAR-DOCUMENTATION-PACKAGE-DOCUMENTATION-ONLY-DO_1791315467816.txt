@@ -1,0 +1,729 @@
+FINAL MIYAR DOCUMENTATION PACKAGE
+DOCUMENTATION ONLY — DO NOT CHANGE PRODUCT FUNCTIONALITY
+
+Goal:
+Prepare the complete final documentation required for competition submission.
+
+IMPORTANT:
+Do NOT modify:
+- verification logic
+- API behavior
+- source providers
+- UI behavior
+- routes
+- history behavior
+- authentication
+- build configuration
+- product functionality
+
+This task is DOCUMENTATION ONLY.
+
+==================================================
+1. CREATE FINAL DOCUMENTATION
+==================================================
+
+Create a complete project documentation file for:
+
+مِعيار | MIYAR
+
+Use clear Arabic as the primary language.
+Technical identifiers may remain in English where necessary.
+
+Create:
+
+docs/MIYAR_Final_Documentation.md
+
+Also create:
+
+docs/MIYAR_Submission_Checklist.md
+
+==================================================
+2. PROJECT INTRODUCTION
+==================================================
+
+Include:
+
+اسم المشروع:
+مِعيار | MIYAR
+
+وصف مختصر:
+
+"مِعيار منصة ذكية للتحقق من جودة المحتوى الإسلامي قبل النشر. يحلل النص إلى ادعاءات قابلة للتحقق، ويربط كل ادعاء بالمصدر المناسب، ثم يعرض حالة الدليل والمصدر والموضع وسبب النتيجة بصورة واضحة وقابلة للتتبع."
+
+Core positioning:
+
+"مِعيار لا يكتب المحتوى بدل المستخدم؛ بل يتحقق مما سيُنشر."
+
+==================================================
+3. THE PROBLEM
+==================================================
+
+Document the problem clearly:
+
+- وجود مرجع لا يعني بالضرورة أن المرجع يثبت الادعاء نفسه.
+- قد تكون الإحالة غير دقيقة.
+- قد يكون الدليل مرتبطًا بالموضوع لكنه غير كافٍ.
+- قد يكون نطاق المصدر أضيق من التعميم الموجود في المحتوى.
+- التحقق اليدوي قد يكون بطيئًا ومشتتًا.
+- المستخدم يحتاج نتيجة واضحة تربط الادعاء بالدليل والمصدر.
+
+Do not exaggerate the problem.
+
+==================================================
+4. THE SOLUTION
+==================================================
+
+Explain MIYAR's verification workflow:
+
+1. User pastes existing Islamic content.
+2. MIYAR extracts verifiable claims.
+3. MIYAR identifies the relevant knowledge domain.
+4. Claims are routed to the appropriate available source provider.
+5. Evidence and source locator are retrieved.
+6. MIYAR evaluates the relationship between claim and evidence.
+7. The user sees:
+   - claim
+   - evidence status
+   - source
+   - locator
+   - evidence excerpt
+   - reason for the result
+
+==================================================
+5. PUBLIC VERIFICATION STATUSES
+==================================================
+
+Document the user-facing statuses:
+
+موثق
+الدليل غير كافٍ
+تعارض في الإحالة
+يحتاج مراجعة بشرية
+
+Explain briefly what each one means.
+
+Do NOT expose internal enums in the main Arabic explanation.
+
+You may include internal mappings in a small technical appendix only if useful.
+
+==================================================
+6. AI ROLE
+==================================================
+
+Explain exactly what AI does in MIYAR:
+
+- understanding submitted text
+- extracting claims
+- classifying the claim/domain
+- helping route search to the appropriate source
+- comparing claim and retrieved evidence
+- explaining the verification result in Arabic
+
+Critical statement:
+
+AI is NOT itself the evidence source.
+
+Evidence must come from the connected source providers.
+
+Document fail-closed behavior:
+if evidence is insufficient or uncertain, MIYAR does not invent support.
+
+==================================================
+7. CURRENT LIVE SOURCES
+==================================================
+
+Document ONLY the sources that are actually live.
+
+Current LIVE providers:
+
+1. القرآن الكريم
+Scientific/public source:
+Tanzil
+
+Public label:
+القرآن الكريم — Tanzil
+
+Use:
+Quran verse text and reference.
+
+2. التفسير
+Actual source:
+QuranEnc — Arabic Al-Mukhtasar edition
+
+Public label:
+المختصر في تفسير القرآن الكريم
+
+Use:
+verse-specific interpretation evidence.
+
+3. الحديث
+Actual retrieval source:
+HadithWeb direct Sahih al-Bukhari / Sahih Muslim records
+
+Public label:
+صحيح البخاري / صحيح مسلم
+
+Use:
+direct hadith records and references.
+
+4. السيرة
+Scientific work:
+السيرة النبوية لابن هشام
+
+Actual retrieval/hosting:
+HadithWeb/Alifta as implemented
+
+Public label:
+السيرة النبوية لابن هشام
+
+Use:
+source attribution / seerah text.
+
+==================================================
+8. SOURCES CURRENTLY PENDING
+==================================================
+
+Document the following as:
+
+"قيد الربط"
+
+NOT as live sources:
+
+- مختصر القدوري
+- كتاب السنة لعبدالله بن أحمد بن حنبل
+- قاموس المحتوى الإسلامي / الجمهرة
+- بينات
+
+Use wording such as:
+
+"تم تصميم بنية مِعيار لتدعم هذه المسارات، لكنها ليست مزودات حية في النسخة الحالية."
+
+Do not claim 8 live providers.
+
+==================================================
+9. SOURCE SAFETY RULES
+==================================================
+
+Document the source-scope rules:
+
+Hadith:
+wrong explicit reference number must not be silently corrected and supported.
+
+Seerah:
+presence in Ibn Hisham does not automatically mean hadith authenticity.
+
+Tafsir:
+related tafsir evidence does not automatically prove a broader claim.
+
+General:
+related evidence ≠ direct support.
+
+Source occurrence ≠ universal truth.
+
+==================================================
+10. CURRENT SYSTEM ARCHITECTURE
+==================================================
+
+Document the actual stack.
+
+Use current project facts only.
+
+Expected sections:
+
+Frontend:
+React
+TypeScript
+Vite
+
+Backend:
+Node.js
+Express
+TypeScript
+
+AI:
+OpenAI API, server-side only
+
+Verification endpoint:
+POST /api/verify/public
+
+Health endpoint:
+GET /api/healthz
+
+History:
+browser-local history using localStorage only
+
+No login
+No account system
+No user verification database persistence
+
+If any of these differ from current code, document the actual implementation instead.
+
+==================================================
+11. HISTORY / PRIVACY
+==================================================
+
+Document current behavior accurately.
+
+History:
+- saved only in the user's browser
+- uses localStorage
+- no account required
+- user can open previous verification
+- user can delete a single record
+- user can clear history
+
+Do NOT say:
+"لا حفظ للنصوص"
+
+because local browser history now exists.
+
+Use:
+
+"سجل التحقق محفوظ محليًا في متصفح المستخدم، ولا يتطلب حسابًا."
+
+Document that verification history is not stored as a server-side user account history.
+
+==================================================
+12. ENVIRONMENT VARIABLES
+==================================================
+
+Create/update:
+
+.env.example
+
+It must contain variable NAMES ONLY.
+
+For example:
+
+OPENAI_API_KEY=
+
+If the current project needs additional environment variables, include their names only.
+
+NEVER include actual values.
+
+Documentation should explain:
+
+1. Copy `.env.example`
+2. Configure required secret values in Replit Secrets or local environment.
+3. Never commit `.env`
+
+==================================================
+13. INSTALLATION
+==================================================
+
+Inspect the actual project package scripts and write exact installation/run instructions.
+
+Include commands for:
+
+- installing dependencies
+- running development mode
+- typecheck
+- tests
+- build
+- health check
+
+DO NOT invent commands.
+
+Use actual package.json scripts.
+
+If the workspace has separate web/API commands, document them clearly.
+
+==================================================
+14. PROJECT STRUCTURE
+==================================================
+
+Add a concise project structure overview.
+
+Explain the important folders only.
+
+For example:
+
+- artifacts/miyar/
+- artifacts/api-server/
+- source provider files
+- tests
+- docs
+- data/source assets
+
+Use actual repository structure.
+
+==================================================
+15. TESTING AND VALIDATION
+==================================================
+
+Document current verified QA facts:
+
+- Public verification API: PASS
+- Visible browser result: PASS
+- Typecheck: PASS
+- Tests: 18/18
+- Build: PASS
+- Health: PASS
+- No login
+- No server-side user history database
+
+Also document key test cases:
+
+Quran:
+ورد في القرآن الكريم أن الله يأمر بالعدل والإحسان في سورة النحل، الآية 90.
+
+Wrong hadith reference:
+حديث «إنما الأعمال بالنيات» رواه البخاري برقم 999999.
+
+Seerah safety test:
+a claim must not equate Ibn Hisham attribution with hadith authentication.
+
+Do not fabricate test outcomes beyond the actual current project state.
+
+==================================================
+16. IMPACT
+==================================================
+
+Create an "الأثر" section.
+
+Explain intended value:
+
+- reduces steps required to verify claims
+- centralizes claim, evidence, source, and locator
+- helps content creators review before publication
+- highlights evidence gaps
+- helps identify reference mismatch
+
+If mentioning the earlier timing test:
+
+49 seconds manually
+vs
+11 seconds with MIYAR
+
+label it explicitly:
+
+"اختبار أولي محدود لحالة واحدة"
+
+Do NOT present it as a general result.
+
+Also document that a 5-user evaluation may be used as a small usability/impact evaluation if completed.
+
+If final 5-user results are not yet available:
+leave a clearly marked placeholder section rather than inventing numbers.
+
+==================================================
+17. INNOVATION
+==================================================
+
+Document the innovation clearly.
+
+Focus on:
+
+1. claim-level verification rather than generic answer generation
+2. evidence relationship evaluation
+3. source-scope awareness
+4. reference mismatch detection
+5. explicit evidence-gap reporting
+6. human review state when needed
+7. traceable result structure:
+   claim → evidence → source → locator → status
+
+Explain how this differs from simply searching for related Islamic content.
+
+==================================================
+18. LIMITATIONS
+==================================================
+
+Be transparent.
+
+Current limitations include:
+
+- not all target source families are live
+- available evidence depends on connected providers
+- provider/network availability can affect retrieval
+- MIYAR is not a substitute for specialist review
+- human review may still be required for ambiguous or complex cases
+- current impact evaluation is limited unless full 5-user data is completed
+
+Do not hide limitations.
+
+==================================================
+19. TOOLS
+==================================================
+
+Create a section listing actual tools used.
+
+Include only what the project actually uses, such as:
+
+- Replit
+- GitHub
+- OpenAI API
+- React
+- TypeScript
+- Vite
+- Node.js
+- Express
+
+Include source services separately.
+
+Do not list tools that were only discussed but not used in the final build.
+
+==================================================
+20. SOURCES / REFERENCES / PROVENANCE
+==================================================
+
+Create a complete source documentation table.
+
+Columns:
+
+المجال
+المصدر العلمي
+مزود/مكان الاسترجاع
+الحالة
+الاستخدام
+ملاحظات النطاق
+الرابط/المرجع
+الترخيص/شروط الاستخدام إن كانت معروفة
+
+For every source:
+distinguish clearly between:
+
+Scientific source
+and
+Technical host/provider
+
+Example:
+
+السيرة:
+Scientific source:
+السيرة النبوية لابن هشام
+
+Technical retrieval:
+HadithWeb/Alifta
+
+Do not call a technical host the scientific work itself.
+
+==================================================
+21. LICENSE REVIEW
+==================================================
+
+Inspect source files currently included in the repository.
+
+Especially:
+
+artifacts/api-server/data/
+artifacts/api-server/data/upstream-miyar/
+
+Classify files into:
+
+A. safe documentation / provenance / license files
+B. source corpus files with known permission
+C. files requiring manual license review
+D. files that should not be published publicly
+
+Do NOT delete source files automatically.
+
+Report anything requiring human review.
+
+==================================================
+22. SECURITY / GITHUB SAFETY
+==================================================
+
+Document and verify that public GitHub must NOT contain:
+
+- .env
+- API keys
+- tokens
+- passwords
+- private credentials
+- database dumps
+- user data
+- personal verification history
+- logs containing private content
+- internal diagnostics
+- .agents memory
+- Replit secret values
+
+Ensure `.gitignore` covers these.
+
+Do NOT print secret values in the documentation or report.
+
+==================================================
+23. README
+==================================================
+
+Update the root/project README so that a reviewer can understand and run MIYAR without opening the full documentation first.
+
+README must include:
+
+- project title
+- short description
+- problem
+- solution
+- how it works
+- live sources
+- pending sources
+- setup
+- environment variables
+- run instructions
+- tests
+- architecture
+- privacy
+- limitations
+- competition/demo links placeholders
+
+Do not include stale Create/auth documentation.
+
+==================================================
+24. COMPETITION SUBMISSION CHECKLIST
+==================================================
+
+Create:
+
+docs/MIYAR_Submission_Checklist.md
+
+Include checkboxes for:
+
+[ ] Presentation PDF/PPTX complete
+[ ] Public solution URL tested
+[ ] GitHub repository public
+[ ] README complete
+[ ] Setup instructions complete
+[ ] `.env` excluded
+[ ] Secrets excluded
+[ ] No beneficiary/user data
+[ ] Source/license review complete
+[ ] Demo video ≤ 2 minutes
+[ ] Demo video link works
+[ ] Public solution works without login
+[ ] Quran verification works
+[ ] Hadith wrong-reference test works
+[ ] Sources page works
+[ ] History page works
+[ ] Health check works
+[ ] Final production smoke test complete
+
+==================================================
+25. SUBMISSION LINKS SECTION
+==================================================
+
+Add placeholders:
+
+رابط الحل:
+[TO BE ADDED]
+
+GitHub:
+[TO BE ADDED]
+
+الفيديو:
+[TO BE ADDED]
+
+العرض التقديمي:
+[TO BE ADDED]
+
+Do not invent URLs.
+
+==================================================
+26. DOCUMENTATION QUALITY
+==================================================
+
+The documentation must be:
+
+- reviewer-friendly
+- accurate
+- concise but complete
+- Arabic-first
+- professional
+- transparent
+- no exaggerated claims
+- no internal debug language
+- no stale architecture references
+
+==================================================
+27. FINAL SAFETY AUDIT
+==================================================
+
+Before finishing:
+
+search the repository for:
+
+OPENAI_API_KEY
+sk-
+secret
+password
+token
+DATABASE_URL
+.env
+private URLs
+debug dumps
+user content
+
+Do not reveal the matching secret values.
+
+Only report whether risky material exists.
+
+==================================================
+28. FINAL REPORT
+==================================================
+
+Return ONLY:
+
+FINAL_DOCUMENTATION_CREATED:
+PASS/FAIL
+
+DOCUMENTATION_FILE:
+<path>
+
+SUBMISSION_CHECKLIST_CREATED:
+PASS/FAIL
+
+CHECKLIST_FILE:
+<path>
+
+README_UPDATED:
+PASS/FAIL
+
+ENV_EXAMPLE_READY:
+PASS/FAIL
+
+GITIGNORE_READY:
+PASS/FAIL
+
+SECRETS_IN_PUBLIC_FILES:
+YES/NO
+
+USER_DATA_IN_PUBLIC_FILES:
+YES/NO
+
+AGENT_INTERNAL_FILES_EXCLUDED:
+PASS/FAIL
+
+LIVE_SOURCES_DOCUMENTED_ACCURATELY:
+PASS/FAIL
+
+PENDING_SOURCES_DOCUMENTED_ACCURATELY:
+PASS/FAIL
+
+SOURCE_PROVENANCE_DOCUMENTED:
+PASS/FAIL
+
+LICENSE_REVIEW_REQUIRED:
+YES/NO
+
+FILES_REQUIRING_LICENSE_REVIEW:
+<list or NONE>
+
+INSTALLATION_INSTRUCTIONS_VERIFIED:
+PASS/FAIL
+
+TEST_COMMANDS_VERIFIED:
+PASS/FAIL
+
+CURRENT_TEST_STATUS:
+<number>/<number>
+
+BUILD_STATUS:
+PASS/FAIL
+
+HEALTH_STATUS:
+PASS/FAIL
+
+ACTION_REQUIRED_FROM_USER:
+<only remaining manual submission actions>
+
+DO NOT PUBLISH.
