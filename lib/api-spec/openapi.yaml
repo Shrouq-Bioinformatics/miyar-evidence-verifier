@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: verification
+    description: Stateless public content verification
 paths:
   /healthz:
     get:
@@ -24,6 +26,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /verify/public:
+    post:
+      operationId: verifyPublicContent
+      tags: [verification]
+      summary: Verify submitted Islamic content
+      description: Returns a claim-by-claim verification result without saving submitted content.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyPublicInput"
+      responses:
+        "200":
+          description: Verification completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerificationResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "500":
+          description: Verification service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +66,82 @@ components:
           type: string
       required:
         - status
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    VerifyPublicInput:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 12000
+      required:
+        - content
+    VerificationStatus:
+      type: string
+      enum: [supported, insufficient, mismatch, needs_review]
+    EvidenceItem:
+      type: object
+      properties:
+        sourceTitle:
+          type: string
+        locator:
+          type: string
+        excerpt:
+          type: string
+        url:
+          type: [string, "null"]
+      required: [sourceTitle, locator, excerpt, url]
+    ClaimResult:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        status:
+          $ref: "#/components/schemas/VerificationStatus"
+        reason:
+          type: string
+        domain:
+          type: string
+        evidence:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceItem"
+      required: [id, text, status, reason, domain, evidence]
+    VerificationCounts:
+      type: object
+      properties:
+        supported:
+          type: integer
+        insufficient:
+          type: integer
+        mismatch:
+          type: integer
+        needsReview:
+          type: integer
+      required: [supported, insufficient, mismatch, needsReview]
+    VerificationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [COMPLETE]
+        originalContent:
+          type: string
+        summary:
+          type: string
+        claims:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClaimResult"
+        counts:
+          $ref: "#/components/schemas/VerificationCounts"
+      required: [status, originalContent, summary, claims, counts]
 
