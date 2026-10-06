@@ -23,6 +23,8 @@ export type RetrievedEvidence = {
   summary?: string;
   sourceSubtype?: string;
   sourceMetadataStatus?: "verified" | "unavailable";
+  hadithCollection?: "bukhari" | "muslim";
+  hadithNumber?: number;
   resolutionNumber?: string;
   sessionDate?: string;
   topic?: string;
@@ -261,30 +263,6 @@ function loadTanzilQuranEvidence(): EvidenceRecord[] {
 
 const evidenceCorpus: EvidenceRecord[] = [
   ...loadTanzilQuranEvidence(),
-  {
-    id: "bukhari-hadith-1",
-    sourceId: "bukhari",
-    sourceTitle: "صحيح البخاري",
-    sourceType: "حديث",
-    reference: "صحيح البخاري، كتاب بدء الوحي، حديث 1",
-    excerpt:
-      "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوْ امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ",
-    url: "https://sunnah.com/bukhari:1",
-    edition: "ترقيم محمد فؤاد عبد الباقي، نسخة الويب المرئية",
-    aliases: ["الأعمال بالنيات", "إنما الأعمال", "النيات", "البخاري 1"],
-  },
-  {
-    id: "muslim-faith-55",
-    sourceId: "muslim",
-    sourceTitle: "صحيح مسلم",
-    sourceType: "حديث",
-    reference: "صحيح مسلم، كتاب الإيمان، حديث 55",
-    excerpt:
-      "الدِّينُ النَّصِيحَةُ. قُلْنَا: لِمَنْ؟ قَالَ: لِلَّهِ، وَلِكِتَابِهِ، وَلِرَسُولِهِ، وَلِأَئِمَّةِ الْمُسْلِمِينَ وَعَامَّتِهِمْ",
-    url: "https://sunnah.com/muslim:55",
-    edition: "ترقيم محمد فؤاد عبد الباقي، نسخة الويب المرئية",
-    aliases: ["الدين النصيحة", "النصيحة", "مسلم 55"],
-  },
 ];
 
 const quranEvidenceByReference = new Map<string, EvidenceRecord>();

@@ -14,6 +14,10 @@ try {
     entryPoints: [
       path.join(testsDir, "quranenc-tafsir.test.ts"),
       path.join(testsDir, "quranenc-tafsir-provider.test.ts"),
+      path.join(testsDir, "alifta-hadith-provider.test.ts"),
+      path.join(testsDir, "ibn-hisham-seerah-provider.test.ts"),
+      path.join(testsDir, "source-safety.test.ts"),
+      path.join(testsDir, "evidence-providers.test.ts"),
     ],
     outdir: outputDir,
     bundle: true,

@@ -4,8 +4,13 @@ import {
   retrieveQuranEvidenceByReference,
   type RetrievedEvidence,
 } from "./evidence";
-import type { EvidenceProvider, EvidenceProviderClaim } from "./evidence-provider";
-import { quranEncTafsirProvider } from "./quranenc-tafsir-provider";
+import type { EvidenceProviderClaim } from "./evidence-provider";
+import { evidenceProviders } from "./evidence-providers";
+import {
+  checkExplicitHadithReference,
+  duplicatesExplicitHadithReference,
+  requiresSeerahAuthenticationReview,
+} from "./source-safety";
 
 type Domain =
   | "القرآن"
@@ -261,9 +266,15 @@ function getRetrievedEvidence(claim: ExtractedClaim): RetrievedEvidence[] {
   return retrieveEvidence(claim.text).filter((item) => item.sourceType === "quran");
 }
 
-const evidenceProviders: readonly EvidenceProvider[] = [
-  quranEncTafsirProvider,
-];
+function evidenceMatchesDomain(item: RetrievedEvidence, domain: Domain): boolean {
+  const sourceTypeByDomain: Partial<Record<Domain, string>> = {
+    "القرآن": "quran",
+    "التفسير": "tafsir",
+    "الحديث": "hadith",
+    "السيرة": "seerah",
+  };
+  return item.sourceType === sourceTypeByDomain[domain];
+}
 
 async function retrieveEvidenceForClaim(
   claim: ExtractedClaim,
@@ -288,7 +299,7 @@ async function retrieveEvidenceForClaim(
   return retrieved.filter((item) => {
     if (seen.has(item.id)) return false;
     seen.add(item.id);
-    return true;
+    return evidenceMatchesDomain(item, claim.domain);
   });
 }
 
@@ -354,7 +365,9 @@ function publicEvidence(item: RetrievedEvidence) {
       ? "القرآن الكريم — Tanzil"
       : isTafsir
         ? `${item.sourceName ?? item.sourceTitle} — ${item.edition}`
-        : `${item.sourceTitle} — سجل محدود من Sunnah.com`,
+        : item.sourceType === "hadith" || item.sourceType === "seerah"
+          ? `${item.sourceTitle} — ${item.sourceName ?? "مصدر مباشر"}`
+          : item.sourceTitle,
     locator:
       isQuran && item.surahName && item.ayahNumber
         ? `سورة ${item.surahName}، الآية ${item.ayahNumber}`
@@ -405,11 +418,22 @@ export async function verifyPublicContent(content: string) {
   }
 
   const claimsByText = new Map<string, ExtractedClaim>();
-  for (const claim of [
-    ...findExplicitHadithReferenceClaims(content),
-    ...extractedClaims.map(enforceExplicitFiqhDomain),
-  ]) {
+  const explicitHadithClaims = findExplicitHadithReferenceClaims(content);
+  for (const claim of explicitHadithClaims) {
     if (!claimsByText.has(claim.text)) claimsByText.set(claim.text, claim);
+  }
+  for (const extracted of extractedClaims.map(enforceExplicitFiqhDomain)) {
+    if (
+      extracted.domain === "الحديث" &&
+      explicitHadithClaims.some((reference) =>
+        duplicatesExplicitHadithReference(extracted.text, reference.text),
+      )
+    ) {
+      continue;
+    }
+    if (!claimsByText.has(extracted.text)) {
+      claimsByText.set(extracted.text, extracted);
+    }
   }
   const claimsToVerify = [...claimsByText.values()];
   if (claimsToVerify.length === 0 && extractionFailed && content.trim()) {
@@ -435,18 +459,60 @@ export async function verifyPublicContent(content: string) {
           reason: claim.domain === "القرآن"
             ? "لم يجد مِعيار نصًا مسترجعًا مطابقًا لهذه الإحالة في نص القرآن المعتمد."
             : claim.domain === "الحديث"
-              ? "لم يُتحقق من هذه الإحالة لأن مزود الحديث المحدد غير متصل؛ لم يُستبدل الرقم أو يُستنتج تصحيحها."
+              ? "لم يُسترجع نص مطابق من صحيح البخاري أو صحيح مسلم؛ لم يُستبدل الرقم ولم يُستنتج تصحيح الحديث."
               : claim.domain === "التفسير"
                 ? "لم يُسترجع نص تفسير مطابق من QuranEnc؛ ولا يكفي نص الآية وحده لإثبات تفسيرها."
-              : "المصدر المعتمد لهذا المجال غير متصل في النسخة الحالية، لذلك لا يتوفر دليل مسترجع لهذا الادعاء.",
+              : claim.domain === "السيرة"
+                ? "لم يُسترجع موضع مطابق من نص السيرة النبوية لابن هشام؛ ولا يثبت نص السيرة صحة الحديث."
+                : "المصدر المعتمد لهذا المجال غير متصل في النسخة الحالية، لذلك لا يتوفر دليل مسترجع لهذا الادعاء.",
           domain: claim.domain,
           evidence: [],
         };
       }
 
+      const hadithReferenceCheck = checkExplicitHadithReference(
+        claim.text,
+        retrieved,
+      );
+      if (hadithReferenceCheck?.kind === "mismatch") {
+        return {
+          id,
+          text: claim.text,
+          status: "mismatch" as const,
+          reason: hadithReferenceCheck.reason,
+          domain: claim.domain,
+          evidence: hadithReferenceCheck.evidence
+            .slice(0, 3)
+            .map(publicEvidence),
+        };
+      }
+      const evaluationEvidence =
+        hadithReferenceCheck?.kind === "match"
+          ? hadithReferenceCheck.evidence
+          : retrieved;
+
+      if (
+        claim.domain === "السيرة" &&
+        requiresSeerahAuthenticationReview(claim.text)
+      ) {
+        return {
+          id,
+          text: claim.text,
+          status: "needs_review" as const,
+          reason:
+            "وجود الخبر في مصدر السيرة يثبت وروده في ذلك النص فقط؛ ولا يكفي لتصحيح الحديث أو الحكم على إسناده.",
+          domain: claim.domain,
+          evidence: retrieved.slice(0, 3).map(publicEvidence),
+        };
+      }
+
       let evaluation: ClaimEvaluation;
       try {
-        evaluation = await evaluateEvidence(client, claim, retrieved.slice(0, 3));
+        evaluation = await evaluateEvidence(
+          client,
+          claim,
+          evaluationEvidence.slice(0, 3),
+        );
       } catch (error) {
         if (!(error instanceof InvalidStructuredOutputError)) throw error;
         return {
@@ -459,8 +525,13 @@ export async function verifyPublicContent(content: string) {
         };
       }
       const selectedEvidence = evaluation.evidenceIndexes
-        .filter((value) => Number.isInteger(value) && value >= 0 && value < retrieved.length)
-        .map((value) => retrieved[value])
+        .filter(
+          (value) =>
+            Number.isInteger(value) &&
+            value >= 0 &&
+            value < evaluationEvidence.length,
+        )
+        .map((value) => evaluationEvidence[value])
         .filter((item) => Boolean(item?.excerpt || item?.tafsirText));
       const status =
         evaluation.status === "supported" && selectedEvidence.length === 0
