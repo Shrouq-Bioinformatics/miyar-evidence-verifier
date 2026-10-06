@@ -20,6 +20,8 @@
 4. يسترجع الدليل وموضعه، ثم يقيّم صلته بالادعاء.
 5. تعرض الواجهة الادعاء والحالة والمصدر والموضع والاقتباس وسبب النتيجة.
 
+يدعم مِعيار استخراج عدة ادعاءات مستقلة من الفقرة العربية، بما في ذلك بعض الجمل المركبة، مع الحفاظ على سياق الإحالات مثل «هذه الآية» عند تحويل الادعاء إلى صيغة مستقلة قابلة للتحقق.
+
 الذكاء الاصطناعي ليس مصدرًا علميًا. عند غياب دليل كافٍ لا تختلق مِعيار دعمًا،
 والإحالة غير المطابقة لا تُصحح بصمت.
 
@@ -77,8 +79,8 @@ pnpm --filter @workspace/miyar run typecheck
 pnpm --filter @workspace/api-server run test:providers
 ```
 
-مجموعة مزودي المصادر تضم 18 اختبارًا. آخر تحقق في 2026-10-06: فحوص الأنواع
-للخادم والواجهة ناجحة، الاختبارات 18/18، وفحص الصحة أعاد HTTP 200
+مجموعة مزودي المصادر تضم 24 اختبارًا. آخر تحقق في 2026-10-06: فحوص الأنواع
+للخادم والواجهة ناجحة، الاختبارات 24/24، وفحص الصحة أعاد HTTP 200
 `{"status":"ok"}`. نتائج الحالات التي جرى التحقق منها:
 
 - اختبار آية النحل 90: «موثق».
@@ -124,14 +126,10 @@ pnpm --filter @workspace/api-server run test:providers
 يتجاهل `.gitignore` ملفات البيئة والمفاتيح والبيانات المحلية والسجلات وملفات
 البيانات الداخلية `.agents/` و`.local/`. لا يتضمن `.env.example` قيمًا سرية.
 
+
 ## روابط التسليم
 
-- رابط الحل: **[TO BE ADDED]**
-- مستودع GitHub: **[TO BE ADDED]**
-- فيديو العرض: **[TO BE ADDED]** — الملف المحلي:
-  `artifacts/miyar-competition-demo/MIYAR_Final_Competition_Demo.mp4`
-- العرض التقديمي: جاهز؛ الرابط أو مرجع الملف: **[TO BE ADDED]**
-
-للتفاصيل ومراجعة المصادر والتراخيص، راجع
-[`docs/MIYAR_Final_Documentation.md`](docs/MIYAR_Final_Documentation.md) و
-[`docs/MIYAR_Submission_Checklist.md`](docs/MIYAR_Submission_Checklist.md).
+- رابط الحل: https://emergency-alert-system-algarnishrouq.replit.app
+- GitHub: https://github.com/Shrouq-Bioinformatics/miyar-evidence-verifier
+- الفيديو التوضيحي: https://youtu.be/Qfrozkh2LBM
+- العرض التقديمي: MIYAR_Final_Competition_Presentation_Editable.pdf

@@ -1,29 +1,31 @@
-# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# compiled output
+# Build output
 build/
-dist
-tmp
-out-tsc
+dist/
+tmp/
+out-tsc/
 *.tsbuildinfo
-.expo
-.expo-shared
+.expo/
+.expo-shared/
 
-# Local secrets and environment-specific values
+# Secrets and environment-specific values
 .env
 .env.*
 !.env.example
 *.pem
 *.key
 
-# Local data, diagnostics, and internal agent state
+# Local data, diagnostics, caches, and internal agent state
 .agents/
 diagnostics/
+.cache/
+.local/
+.temp/
+uploads/
+private-data/
+user-data/
 *.log
 logs/
 coverage/
-.temp/
-uploads/
 *.dump
 *.backup
 *.bak
@@ -32,15 +34,13 @@ uploads/
 *.sqlite
 *.sqlite3
 *.db
-private-data/
-user-data/
 
-# dependencies
-node_modules
+# Dependencies
+node_modules/
 
-# IDEs and editors
-/.idea
+# IDE/editor files
 .idea/
+.vscode/
 .project
 .classpath
 .c9/
@@ -48,32 +48,20 @@ node_modules
 .settings/
 *.sublime-workspace
 
-# IDE - VSCode
-.vscode/
-!.vscode/
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# misc
-/.sass-cache
-/connect.lock
-/coverage
-/libpeerconnection.log
+# System/misc
+.DS_Store
+Thumbs.db
+.sass-cache/
+connect.lock
+libpeerconnection.log
 npm-debug.log
 yarn-error.log
 testem.log
-/typings
+typings/
 
-# System Files
-.DS_Store
-Thumbs.db
-
+# Internal generated/editor instructions
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
-# Replit
-.cache/
-.local/
+# Internal pasted Agent prompts
+attached_assets/Pasted-*
