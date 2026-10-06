@@ -1,0 +1,490 @@
+FINAL MIYAR UI CLEANUP + LOCAL HISTORY
+
+IMPORTANT:
+Do NOT change the working verification backend.
+Do NOT change /api/verify/public.
+Do NOT change source providers.
+Do NOT add authentication.
+Do NOT add a database.
+Do NOT add server-side user history.
+
+This task is ONLY:
+1. clean the public UI
+2. add the MIYAR logo
+3. add simple browser-local verification history
+
+==================================================
+1. ADD MIYAR LOGO
+==================================================
+
+Use the uploaded MIYAR logo provided by the user.
+
+Place it professionally:
+- in the main header / navbar
+- and/or home hero area
+
+Preserve aspect ratio.
+Do not stretch or distort it.
+
+Use the logo as the visible MIYAR brand identity.
+
+==================================================
+2. DELETE ALL OF THIS COPY COMPLETELY
+==================================================
+
+The user copied the following text from the current interface because it should NOT be visible.
+
+REMOVE EACH OF THESE PHRASES ENTIRELY wherever it appears:
+
+"لا حساب. لا حفظ للنصوص. تحقّق مباشر في الصفحة."
+
+"لا حساب. لا حفظ للنصوص. تحقّق مباشر في الصفحة."
+
+"تحقق محدد، لا فتوى ولا إعادة صياغة"
+
+"الدليل أولًا، مع توضيح حدود كل نتيجة."
+
+"مِعيار — أداة مساعدة للتحقق من النقول الإسلامية"
+
+"تحقق مباشر، بلا حفظ"
+
+"يُرسل النص إلى OpenAI للتحليل؛ ولا يحتفظ مِعيار بسجل أو تاريخ للطلبات."
+
+"عرض مِعيار نطاق المصدر وحدود استخدامه. نص Tanzil المحلي وتفسير QuranEnc موصولان؛ وتبقى بقية المصادر قيد الربط كما هي."
+
+"ظهر حالة كل مصدر بوضوح؛ لا تُعرض المصادر قيد الربط على أنها أدلة مستخدمة في نتيجة التحقق."
+
+"الإحالة ليست حكماً نهائياً"
+
+"وجود نص في مصدر ما لا يثبت تلقائياً صحة نسبته أو صحة كل تفسير واستنتاج مبني عليه. عند اختلاف الروايات أو الأقوال، يلزم الرجوع إلى المصدر كاملاً وسياقه، واستشارة أهل الاختصاص."
+
+"ما الذي يمكن للمصدر أن يثبته؟"
+
+Also remove any duplicated versions or very similar technical/explanatory blocks.
+
+Do NOT replace these with another long disclaimer.
+
+==================================================
+3. REMOVE TECHNICAL LANGUAGE FROM PUBLIC UI
+==================================================
+
+The user should never see:
+
+- OpenAI
+- API
+- provider
+- provider status internals
+- local corpus
+- QuranEnc technical implementation details
+- Tanzil implementation details
+- database wording
+- localStorage wording
+- retrieval
+- pipeline
+- endpoint
+- JSON
+- internal enums
+- Replit
+- debug information
+- implementation notes
+
+These belong in README/documentation, NOT in the public product.
+
+==================================================
+4. SIMPLE PUBLIC COPY
+==================================================
+
+Keep the public wording minimal.
+
+Home:
+
+مِعيار
+
+"منصة للتحقق من المحتوى الإسلامي ومراجعة أدلته قبل النشر."
+
+Main CTA:
+
+تحقق من محتوى
+
+Secondary CTA:
+
+المصادر
+
+Verify page:
+
+Title:
+"تحقق من محتوى"
+
+Description:
+"ألصق النص المراد التحقق منه، وسيعرض مِعيار الادعاءات والنتائج والأدلة المرتبطة بها."
+
+Textarea label:
+"المحتوى"
+
+Button:
+"تحقق"
+
+Loading:
+"جارٍ التحقق..."
+
+Results headings:
+"نتيجة التحقق"
+"الادعاءات"
+"الأدلة والمراجع"
+
+Keep it concise.
+
+==================================================
+5. ADD HISTORY
+==================================================
+
+Add a new navigation item:
+
+"السجل"
+
+Routes should now be:
+
+/
+ /verify
+ /history
+ /sources
+
+The History page displays verification requests previously made by THIS USER ON THIS BROWSER.
+
+IMPORTANT:
+This must NOT use:
+- accounts
+- Clerk
+- database
+- server persistence
+- user ID
+- authentication
+
+Use browser localStorage only.
+
+==================================================
+6. WHAT TO SAVE IN LOCAL HISTORY
+==================================================
+
+After every SUCCESSFUL verification request, save locally:
+
+{
+  id,
+  originalContent,
+  createdAt,
+  resultSummary,
+  counts,
+  claims
+}
+
+Do NOT save:
+- API keys
+- internal server logs
+- model prompts
+- raw OpenAI responses
+- provider internals
+
+History must be saved ONLY after a valid verification response is received.
+
+==================================================
+7. HISTORY BEHAVIOR
+==================================================
+
+Show newest searches first.
+
+Each history card should show:
+
+- first short portion of the searched text
+- date and time
+- verification summary
+- small status counts if available
+
+Example:
+
+"ورد في القرآن الكريم أن الله يأمر بالعدل..."
+6 أكتوبر 2026 — 9:15 م
+
+موثق: 1
+غير كافٍ: 0
+
+Buttons:
+
+"عرض النتيجة"
+"حذف"
+
+At top of page add:
+
+"مسح السجل"
+
+Require a simple confirmation before clearing everything.
+
+==================================================
+8. OPEN A HISTORY RESULT
+==================================================
+
+When user presses:
+
+"عرض النتيجة"
+
+show the stored verification result.
+
+Either:
+- display it directly on /history
+OR
+- navigate to /verify and render the stored result
+
+DO NOT send the text to the verification API again unless the user explicitly chooses:
+
+"إعادة التحقق"
+
+Optional button:
+
+"إعادة التحقق"
+
+This can submit the text again to get a fresh result.
+
+==================================================
+9. HISTORY EMPTY STATE
+==================================================
+
+If there is no history, show:
+
+"لا توجد عمليات تحقق سابقة."
+
+And button:
+
+"ابدأ التحقق"
+
+==================================================
+10. HISTORY PRIVACY BEHAVIOR
+==================================================
+
+Because history exists, do NOT show the old statement:
+
+"لا حفظ للنصوص"
+
+That statement would now be inaccurate.
+
+Do not display technical privacy explanations on the main UI.
+
+If a short note is needed ONLY inside the History page, use:
+
+"يظهر هذا السجل على هذا الجهاز فقط."
+
+Keep it short.
+
+==================================================
+11. LIMIT HISTORY SIZE
+==================================================
+
+Keep only the latest 30 verification records.
+
+When record 31 is created:
+automatically remove the oldest record.
+
+This avoids unlimited browser storage.
+
+==================================================
+12. LOCAL STORAGE KEY
+==================================================
+
+Use one stable key such as:
+
+miyar_verification_history
+
+Do not expose this technical key in the UI.
+
+==================================================
+13. HANDLE STORAGE ERRORS SAFELY
+==================================================
+
+If localStorage is unavailable or full:
+
+verification itself MUST still work.
+
+Do not make /verify fail because history could not be saved.
+
+History is secondary.
+
+Verification is primary.
+
+==================================================
+14. RESULT UI MUST REMAIN WORKING
+==================================================
+
+Do NOT change the current working API contract.
+
+After clicking تحقق:
+
+fetch("/api/verify/public")
+
+then render the result directly.
+
+After successful render:
+save a copy into local history.
+
+The verification result must still display even if saving history fails.
+
+==================================================
+15. SOURCES PAGE CLEANUP
+==================================================
+
+Also remove long technical text from /sources.
+
+For each source show only:
+
+اسم المصدر
+المجال
+الحالة
+
+For example:
+
+القرآن الكريم — Tanzil
+القرآن
+متاح
+
+المختصر في تفسير القرآن الكريم
+التفسير
+متاح
+
+For sources still unavailable:
+"قيد الربط"
+
+Do not expose implementation details.
+
+==================================================
+16. FINAL NAVIGATION
+==================================================
+
+Navbar:
+
+الرئيسية
+تحقق من محتوى
+السجل
+المصادر
+
+Include MIYAR logo.
+
+Arabic RTL.
+
+==================================================
+17. VISUAL QUALITY
+==================================================
+
+Make the interface:
+- clean
+- elegant
+- minimal
+- competition-ready
+- Arabic RTL
+- responsive
+
+No giant text.
+No hidden/cropped text.
+No long paragraphs.
+No duplicated wording.
+
+==================================================
+18. DO NOT TOUCH
+==================================================
+
+Do NOT change:
+
+- verification scientific logic
+- source routing
+- evidence rules
+- /api/verify/public
+- Quran provider
+- tafsir provider
+- existing working source integrations
+- OpenAI server integration
+
+Do NOT add:
+- login
+- account
+- database
+- backend history API
+
+==================================================
+19. TESTS
+==================================================
+
+Manually verify:
+
+TEST A
+Submit a Quran verification.
+Result appears normally.
+
+TEST B
+After result appears, open "السجل".
+The verification appears there.
+
+TEST C
+Open the saved record.
+The original result is displayed.
+
+TEST D
+Delete one record.
+It disappears.
+
+TEST E
+Create two records, then use "مسح السجل".
+History becomes empty.
+
+TEST F
+Refresh the browser.
+History still exists.
+
+TEST G
+Verification still works even if local history saving is unavailable.
+
+==================================================
+20. FINAL REPORT
+==================================================
+
+Return ONLY:
+
+MIYAR_LOGO_ADDED:
+PASS/FAIL
+
+ALL_REQUESTED_TECHNICAL_COPY_REMOVED:
+PASS/FAIL
+
+PUBLIC_COPY_SIMPLIFIED:
+PASS/FAIL
+
+HISTORY_PAGE_ADDED:
+PASS/FAIL
+
+HISTORY_USES_LOCAL_BROWSER_STORAGE_ONLY:
+PASS/FAIL
+
+NO_DATABASE_ADDED:
+PASS/FAIL
+
+NO_LOGIN_ADDED:
+PASS/FAIL
+
+HISTORY_SURVIVES_REFRESH:
+PASS/FAIL
+
+OPEN_SAVED_RESULT:
+PASS/FAIL
+
+DELETE_SINGLE_HISTORY_ITEM:
+PASS/FAIL
+
+CLEAR_HISTORY:
+PASS/FAIL
+
+VERIFY_STILL_WORKS:
+PASS/FAIL
+
+SOURCES_PAGE_CLEANED:
+PASS/FAIL
+
+FILES_CHANGED:
+<list>
+
+PUBLISHED:
+NO
