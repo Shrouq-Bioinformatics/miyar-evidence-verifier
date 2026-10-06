@@ -4,6 +4,8 @@ import {
   retrieveQuranEvidenceByReference,
   type RetrievedEvidence,
 } from "./evidence";
+import type { EvidenceProvider, EvidenceProviderClaim } from "./evidence-provider";
+import { quranEncTafsirProvider } from "./quranenc-tafsir-provider";
 
 type Domain =
   | "القرآن"
@@ -244,6 +246,8 @@ function enforceExplicitFiqhDomain(claim: ExtractedClaim): ExtractedClaim {
 }
 
 function getRetrievedEvidence(claim: ExtractedClaim): RetrievedEvidence[] {
+  if (claim.domain === "التفسير") return [];
+
   if (claim.domain === "القرآن" || /(?:القرآن|قرآن|سورة|آية|الآية|quran|surah)/iu.test(claim.text)) {
     const reference = parseQuranReference(claim.text);
     if (reference) {
@@ -255,6 +259,37 @@ function getRetrievedEvidence(claim: ExtractedClaim): RetrievedEvidence[] {
 
   if (claim.domain !== "القرآن") return [];
   return retrieveEvidence(claim.text).filter((item) => item.sourceType === "quran");
+}
+
+const evidenceProviders: readonly EvidenceProvider[] = [
+  quranEncTafsirProvider,
+];
+
+async function retrieveEvidenceForClaim(
+  claim: ExtractedClaim,
+): Promise<RetrievedEvidence[]> {
+  const retrieved = getRetrievedEvidence(claim);
+  const providerClaim: EvidenceProviderClaim = {
+    text: claim.text,
+    domain: claim.domain,
+  };
+
+  for (const provider of evidenceProviders) {
+    try {
+      if (!provider.supports(providerClaim)) continue;
+      const result = await provider.retrieve(providerClaim);
+      retrieved.push(...result.evidence);
+    } catch {
+      // A source failure must not make the public verification endpoint fail.
+    }
+  }
+
+  const seen = new Set<string>();
+  return retrieved.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
 }
 
 async function evaluateEvidence(
@@ -313,10 +348,13 @@ async function evaluateEvidence(
 
 function publicEvidence(item: RetrievedEvidence) {
   const isQuran = item.sourceType === "quran";
+  const isTafsir = item.sourceType === "tafsir";
   return {
     sourceTitle: isQuran
       ? "القرآن الكريم — Tanzil"
-      : `${item.sourceTitle} — سجل محدود من Sunnah.com`,
+      : isTafsir
+        ? `${item.sourceName ?? item.sourceTitle} — ${item.edition}`
+        : `${item.sourceTitle} — سجل محدود من Sunnah.com`,
     locator:
       isQuran && item.surahName && item.ayahNumber
         ? `سورة ${item.surahName}، الآية ${item.ayahNumber}`
@@ -387,7 +425,7 @@ export async function verifyPublicContent(content: string) {
 
   const claims = await Promise.all(
     claimsToVerify.map(async (claim, index) => {
-      const retrieved = getRetrievedEvidence(claim);
+      const retrieved = await retrieveEvidenceForClaim(claim);
       const id = `claim-${index + 1}`;
       if (retrieved.length === 0) {
         return {
@@ -398,6 +436,8 @@ export async function verifyPublicContent(content: string) {
             ? "لم يجد مِعيار نصًا مسترجعًا مطابقًا لهذه الإحالة في نص القرآن المعتمد."
             : claim.domain === "الحديث"
               ? "لم يُتحقق من هذه الإحالة لأن مزود الحديث المحدد غير متصل؛ لم يُستبدل الرقم أو يُستنتج تصحيحها."
+              : claim.domain === "التفسير"
+                ? "لم يُسترجع نص تفسير مطابق من QuranEnc؛ ولا يكفي نص الآية وحده لإثبات تفسيرها."
               : "المصدر المعتمد لهذا المجال غير متصل في النسخة الحالية، لذلك لا يتوفر دليل مسترجع لهذا الادعاء.",
           domain: claim.domain,
           evidence: [],

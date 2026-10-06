@@ -39,9 +39,19 @@ const STATUS: Record<ClaimStatus, { label: string; color: string; bg: string }> 
   needs_review: { label: 'يحتاج مراجعة بشرية', color: '#536c78', bg: '#e9eff0' },
 };
 
-const sourceFamilies = [
+type SourceFamily = {
+  title: string;
+  source: string;
+  available: boolean;
+  statusLabel?: string;
+  href: string | null;
+  scope: string;
+  limit: string;
+};
+
+const sourceFamilies: SourceFamily[] = [
   { title: 'القرآن الكريم', source: 'نص Tanzil العربي — محلي', available: true, href: 'https://tanzil.net', scope: 'نص الآيات وأرقام السور والآيات.', limit: 'لا يثبت التفسير أو تنزيل الآية على واقعة بعينها بمجرد ورود النص.' },
-  { title: 'التفسير', source: 'جامع البيان للطبري', available: false, href: null, scope: 'أقوال المفسرين ودلالات الآيات.', limit: 'النقل عن مفسر لا يعني إجماعًا، ولا يغني عن بيان اختلاف الأقوال.' },
+  { title: 'التفسير', source: 'QuranEnc — المختصر في تفسير القرآن الكريم', available: true, statusLabel: 'متصل خارجيًا', href: 'https://quranenc.com/ar/browse/arabic_mokhtasar', scope: 'التفسير الموجز المرتبط بآية قرآنية محددة.', limit: 'هذا ليس جامع البيان للطبري؛ وشرح آية بعينها لا يثبت تلقائيًا ادعاءً أوسع.' },
   { title: 'الحديث', source: 'جامع خادم الحرمين الشريفين للسنة النبوية المطهرة', available: false, href: 'https://sunna.alifta.gov.sa', scope: 'نص الحديث وتخريجه وحكمه حيث يتوفر.', limit: 'وجود الرواية لا يكفي وحده للحكم بصحتها؛ العزو والحكم متعلقان بالمصدر المحدد.' },
   { title: 'العقيدة', source: 'كتاب السنة لعبدالله بن أحمد بن حنبل', available: false, href: null, scope: 'النصوص والتقريرات في أبواب الاعتقاد.', limit: 'تختلف المصطلحات والمناهج؛ يجب نسبة القول إلى مصدره وسياقه.' },
   { title: 'الفقه', source: 'مختصر القدوري — الفقه الحنفي', available: false, href: null, scope: 'الأقوال الفقهية المنقولة ومظانها.', limit: 'لا يُفهم النقل على أنه قول متفق عليه؛ قد تتعدد المذاهب والروايات.' },
@@ -322,7 +332,7 @@ function SourcesPage() {
         <section className="page-head">
           <div className="eyebrow">المراجع وحدود الاستدلال</div>
           <h1>ما الذي يمكن للمصدر أن يثبته؟</h1>
-          <p>يعرض مِعيار نطاق المصدر وحدود استخدامه. النص القرآني المحلي متصل حاليًا؛ وتظهر بقية المصادر هنا بحالة الربط كما هي.</p>
+          <p>يعرض مِعيار نطاق المصدر وحدود استخدامه. نص Tanzil المحلي وتفسير QuranEnc موصولان؛ وتبقى بقية المصادر قيد الربط كما هي.</p>
         </section>
         <section className="source-intro">
           <p>تظهر حالة كل مصدر بوضوح؛ لا تُعرض المصادر قيد الربط على أنها أدلة مستخدمة في نتيجة التحقق.</p>
@@ -331,7 +341,7 @@ function SourcesPage() {
         <section className="source-grid" aria-label="عائلات المصادر وحدودها">
           {sourceFamilies.map((source, index) => (
             <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
-              <div className="source-item-top"><span className="source-num">{String(index + 1).padStart(2, '0')}</span><span className={`source-scope-label ${source.available ? 'source-online' : 'source-pending'}`}>{source.available ? 'متصل محليًا' : 'قيد الربط في النسخة الحالية'}</span></div>
+              <div className="source-item-top"><span className="source-num">{String(index + 1).padStart(2, '0')}</span><span className={`source-scope-label ${source.available ? 'source-online' : 'source-pending'}`}>{source.available ? (source.statusLabel ?? 'متصل محليًا') : 'قيد الربط في النسخة الحالية'}</span></div>
               <h2>{source.title}</h2>
               <p><strong>المصدر:</strong> {source.source}</p>
               <p><strong>نطاق الاستخدام:</strong> {source.scope}</p>
