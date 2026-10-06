@@ -1,6 +1,7 @@
 # See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
 # compiled output
+build/
 dist
 tmp
 out-tsc
@@ -17,9 +18,12 @@ out-tsc
 
 # Local data, diagnostics, and internal agent state
 .agents/
+diagnostics/
 *.log
 logs/
 coverage/
+.temp/
+uploads/
 *.dump
 *.backup
 *.bak
@@ -36,6 +40,7 @@ node_modules
 
 # IDEs and editors
 /.idea
+.idea/
 .project
 .classpath
 .c9/
@@ -44,6 +49,8 @@ node_modules
 *.sublime-workspace
 
 # IDE - VSCode
+.vscode/
+!.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
