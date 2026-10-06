@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode, type RefObject } from 'react';
 import { Link, Route, Router as WouterRouter, Switch, useLocation } from 'wouter';
-import { ArrowLeft, ArrowUpLeft, FileCheck2, LoaderCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowUpLeft, Check, Eye, FileCheck2, Info, LoaderCircle, Trash2, TriangleAlert } from 'lucide-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import NotFound from '@/pages/not-found';
 import miyarLogo from '@assets/0_image-10-1_1791311050480.png';
@@ -83,6 +83,18 @@ const STATUS: Record<ClaimStatus, { label: string; color: string; bg: string }> 
   mismatch: { label: 'تعارض في الإحالة', color: '#a44338', bg: '#f5e9e6' },
   needs_review: { label: 'يحتاج مراجعة بشرية', color: '#536c78', bg: '#e9eff0' },
 };
+
+const STATUS_ICONS = {
+  supported: Check,
+  insufficient: Info,
+  mismatch: TriangleAlert,
+  needs_review: Eye,
+};
+
+function StatusSymbol({ status }: { status: ClaimStatus }) {
+  const Icon = STATUS_ICONS[status];
+  return <Icon className="status-symbol" size={14} strokeWidth={2} aria-hidden="true" />;
+}
 
 type SourceFamily = {
   title: string;
@@ -275,7 +287,7 @@ function VerifyPage() {
 
 function Count({ status, count }: { status: ClaimStatus; count: number }) {
   const meta = STATUS[status];
-  return <span className="count-pill" style={{ '--status-color': meta.color } as CSSProperties}><span className="count-dot" />{meta.label}<strong>{count.toLocaleString('ar')}</strong></span>;
+  return <span className="count-pill" style={{ '--status-color': meta.color } as CSSProperties}><StatusSymbol status={status} />{meta.label}<strong>{count.toLocaleString('ar')}</strong></span>;
 }
 
 function publicResultText(text: string): string {
@@ -315,7 +327,7 @@ function ResultView({ result, refElement }: { result: VerificationResponse; refE
         return (
           <article className="claim-card" key={`${claim.id}-${index}`} style={{ '--status-color': meta.color, '--status-bg': meta.bg } as CSSProperties} data-testid={`claim-result-${claim.id}`}>
             <div className="claim-main">
-              <div className="claim-top"><span className="claim-domain">الادعاء { (index + 1).toLocaleString('ar') } · {claim.domain}</span><span className="status-tag">{meta.label}</span></div>
+              <div className="claim-top"><span className="claim-domain">الادعاء { (index + 1).toLocaleString('ar') } · {claim.domain}</span><span className="status-tag"><StatusSymbol status={claim.status} />{meta.label}</span></div>
               <p className="claim-text">{claim.text}</p>
               <p className="claim-reason">{publicResultText(claim.reason)}</p>
             </div>
@@ -352,7 +364,7 @@ function SourcesPage() {
             <h2 className="source-group-title"><span className="availability-dot available-dot" />مصادر متاحة</h2>
             {sourceFamilies.map((source, index) => source.available && (
               <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
-                <h3>{source.title}</h3>
+                <div className="source-copy"><h3>{source.title}</h3><p className="source-domain">المجال: {source.domain}</p></div>
                 <span className="source-scope-label source-online"><span className="availability-dot available-dot" />متاح</span>
               </article>
             ))}
@@ -361,7 +373,7 @@ function SourcesPage() {
             <h2 className="source-group-title"><span className="availability-dot pending-dot" />مصادر قيد الإتاحة</h2>
             {sourceFamilies.map((source, index) => !source.available && (
               <article className="source-item" key={source.title} data-testid={`source-family-${index + 1}`}>
-                <h3>{source.title}</h3>
+                <div className="source-copy"><h3>{source.title}</h3><p className="source-domain">المجال: {source.domain}</p></div>
                 <span className="source-scope-label source-pending"><span className="availability-dot pending-dot" />قيد الربط</span>
               </article>
             ))}
