@@ -7,7 +7,7 @@
 
 - [x] العرض التقديمي PDF/PPTX جاهز.
 - [ ] رابط الحل العام اختُبر بعد النشر.
-- [ ] مستودع GitHub عام، بعد مراجعة الملفات والتراخيص.
+- [x] مستودع GitHub عام ومرفوع على الفرع `main`.
 - [x] README عربي واضح ومحدث.
 - [x] تعليمات الإعداد والتشغيل والاختبار موثقة.
 - [x] ملفات `.env` مستثناة من Git؛ `.env.example` لا يحتوي قيمًا.
@@ -26,10 +26,10 @@
 
 ## الروابط المطلوب إضافتها
 
-- رابط الحل: **[TO BE ADDED]**
-- GitHub: **[TO BE ADDED]**
-- الفيديو: **[TO BE ADDED]**
-- العرض التقديمي جاهز؛ الرابط أو مرجع الملف: **[TO BE ADDED]**
+- رابط الحل: **https://emergency-alert-system-algarnishrouq.replit.app**
+- GitHub: **https://github.com/Shrouq-Bioinformatics/miyar-evidence-verifier**
+- الفيديو: **https://youtu.be/Qfrozkh2LBM**
+- العرض التقديمي جاهز؛ مرجع الملف: **MIYAR_Final_Competition_Presentation_Editable.pdf**
 
 الملف المحلي للفيديو: `artifacts/miyar-competition-demo/MIYAR_Final_Competition_Demo.mp4`.
 
