@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "مِعيار | MIYAR"
+description = "A public Arabic RTL app for checking Islamic content against approved sources, with claim-by-claim evidence and clear limits. Includes an anonymous, stateless verification flow and source catalog."
+version = "1.0.0"
+id = "artifacts/miyar"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18726
+
+[services.development]
+run = "pnpm --filter @workspace/miyar run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/miyar", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/miyar/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18726"
+BASE_PATH = "/"
