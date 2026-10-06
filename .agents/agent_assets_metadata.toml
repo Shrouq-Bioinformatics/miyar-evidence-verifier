@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "nv7HpzjwbNlu-S_nELyu9"
+uri = "file://artifacts/miyar-competition-demo/MIYAR_Final_Competition_Demo.mp4"
+type = "video"
+title = "MIYAR_Final_Competition_Demo.mp4"
+description = "الفيلم النهائي لمسابقة مِعيار: فيديو H.264 بدقة 1920×1080 و30 إطارًا في الثانية، مع التعليق الصوتي الأصلي دون إعادة ترميز."
+logical_id = "b18f3705-e1b7-4c88-9878-36214c52b8c0"
+content_hash = "sha256:aad3983ae31115f5521dbe6afc90083aac9e52517281efc1c9d64000ac7aa03d"
+size = 7780914
+mtime_ms = 1791314751699
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:aa535908-b720-423d-8b39-08dab3b45e65/b18f3705-e1b7-4c88-9878-36214c52b8c0/79eaa36e-d174-4666-85ea-d8aeded6ce94"
+storage_version_token = "1791314877819221"
+content_type = "video/mp4"
