@@ -131,5 +131,5 @@ pnpm --filter @workspace/api-server run test:providers
 
 - رابط الحل: https://emergency-alert-system-algarnishrouq.replit.app
 - GitHub: https://github.com/Shrouq-Bioinformatics/miyar-evidence-verifier
-- الفيديو التوضيحي: https://youtu.be/Qfrozkh2LBM
+- الفيديو التوضيحي: [https://youtu.be/Qfrozkh2LBM](https://youtu.be/kOvK0XVivDw)
 - العرض التقديمي: MIYAR_Final_Competition_Presentation_Editable.pdf
