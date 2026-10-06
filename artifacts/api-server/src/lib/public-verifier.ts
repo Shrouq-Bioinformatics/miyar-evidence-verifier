@@ -153,6 +153,150 @@ function outputJson<T>(
   })();
 }
 
+const independentClaimLead =
+  /^(?:يفسر|فسر|تفسر|يشرح|شرح|يوضح|يقول|قال|يذكر|ذكر|تذكر|ذكرت|يروي|روى|رواه|نقل|ينقل|ينسب|يدعي|يزعم|يرى|يعتقد|يقرر|قرر|يجزم|يثبت|يؤكد|يستنتج|يستدل|يدل|يشير|ينص|يعد|يعتبر|يحكم|يقضي|رقمه|رقمها|الرقم|العدد|مجرد\s+(?:ذكر|ورود|نقل|إيراد)|(?:هذا|هذه)\s+(?:الآية|الحديث|الرواية|المصدر)\s+(?:يفسر|يشرح|يقول|يذكر|يروي|يثبت|يؤكد|يدل|برقم|رقمه|رقمها)|(?:المختصر|ابن\s+هشام|صحيح\s+البخاري|صحيح\s+مسلم)\s+(?:يفسر|يشرح|قال|يقول|يذكر|يروي|ينقل|يثبت|يؤكد|يدعي|يقرر|ينص))/u;
+
+function latestMatch(text: string, pattern: RegExp): RegExpMatchArray | null {
+  const matches = [...text.matchAll(pattern)];
+  return matches[matches.length - 1] ?? null;
+}
+
+function latestQuranReference(text: string): string | null {
+  const fullReference = latestMatch(
+    text,
+    /سورة\s+([^،,;.!؟\n]+?)\s*[،,]?\s*الآية\s*([0-9٠-٩۰-۹]+)/gu,
+  );
+  if (fullReference) {
+    return `الآية ${fullReference[2]} من سورة ${fullReference[1]?.trim()}`;
+  }
+
+  const ayahOnly = latestMatch(text, /الآية\s*([0-9٠-٩۰-۹]+)/gu);
+  return ayahOnly ? `الآية ${ayahOnly[1]}` : null;
+}
+
+function latestHadithQuote(
+  text: string,
+): { label: "حديث" | "الرواية"; quote: string } | null {
+  const match = latestMatch(
+    text,
+    /(حديث|الرواية)\s*[«“"]([^»”"]+)[»”"]/gu,
+  );
+  if (!match?.[2]) return null;
+  return {
+    label: match[1] === "الرواية" ? "الرواية" : "حديث",
+    quote: match[2],
+  };
+}
+
+function latestHadithCollection(text: string): string | null {
+  const match = latestMatch(
+    text,
+    /(?:صحيح\s+)?(?:البخاري|مسلم)(?:\s+في\s+صحيحه)?/gu,
+  );
+  return match?.[0] ?? null;
+}
+
+function latestNamedSource(text: string): string | null {
+  const match = latestMatch(
+    text,
+    /(?:مختصر\s+القدوري|المختصر(?:\s+في\s+التفسير)?|ابن\s+هشام|صحيح\s+البخاري|صحيح\s+مسلم|البخاري|مسلم)/gu,
+  );
+  return match?.[0] ?? null;
+}
+
+function resolveContextualReferences(text: string, previousContext: string): string {
+  const numberClaim = text
+    .trim()
+    .replace(/^[وف]\s*/u, "")
+    .match(/^(?:رقمه|رقمها|رقم(?:\s+الحديث)?|الرقم)\s*[:：]?\s*([0-9٠-٩۰-۹]+)([.!؟]*)$/u);
+  if (numberClaim) {
+    const context = `${previousContext} ${text}`;
+    const quote = latestHadithQuote(context);
+    const collection = latestHadithCollection(context);
+    if (quote && collection) {
+      return `حديث «${quote.quote}» رواه ${collection} برقم ${numberClaim[1]}${numberClaim[2]}`;
+    }
+  }
+
+  let resolved = text;
+  resolved = resolved.replace(/هذه\s+الآية/gu, (mention, offset: number) => {
+    const context = `${previousContext} ${resolved.slice(0, offset)}`;
+    return latestQuranReference(context) ?? mention;
+  });
+  resolved = resolved.replace(/هذا\s+الحديث/gu, (mention, offset: number) => {
+    const context = `${previousContext} ${resolved.slice(0, offset)}`;
+    const quote = latestHadithQuote(context);
+    return quote ? `حديث «${quote.quote}»` : mention;
+  });
+  resolved = resolved.replace(/هذه\s+الرواية/gu, (mention, offset: number) => {
+    const context = `${previousContext} ${resolved.slice(0, offset)}`;
+    const quote = latestHadithQuote(context);
+    return quote ? `الرواية «${quote.quote}»` : mention;
+  });
+  resolved = resolved.replace(/هذا\s+المصدر/gu, (mention, offset: number) => {
+    const context = `${previousContext} ${resolved.slice(0, offset)}`;
+    return latestNamedSource(context) ?? mention;
+  });
+  resolved = resolved.replace(/ذكره(?=\s|$)/gu, (mention, offset: number) => {
+    const context = `${previousContext} ${resolved.slice(0, offset)}`;
+    return /ابن\s+هشام/u.test(context) ? "ذكر ابن هشام" : mention;
+  });
+  return resolved;
+}
+
+function isIndependentProposition(clause: string): boolean {
+  const withoutConjunction = clause.replace(/^[وف]\s*/u, "").trimStart();
+  return independentClaimLead.test(withoutConjunction);
+}
+
+function findIndependentClauseBoundary(
+  text: string,
+): { start: number; end: number } | null {
+  const pattern = /،\s*و\s*|؛\s*|\s+(?:كما\s+أن|بينما|ثم)\s+/gu;
+  for (const match of text.matchAll(pattern)) {
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const left = text.slice(0, start).trim();
+    const right = text.slice(end).trim();
+    if (left && right && isIndependentProposition(right)) return { start, end };
+  }
+  return null;
+}
+
+function inferSplitClaimDomain(text: string, fallback: Domain): Domain {
+  if (/(?:يفسر|تفسير|المختصر|مختصر القدوري)/u.test(text)) return "التفسير";
+  if (/(?:حديث|رواية|البخاري|مسلم|رقمه|رقم\s|صحتها حديثيًا)/u.test(text)) {
+    return "الحديث";
+  }
+  if (/(?:ابن هشام|خبر الهجرة|السيرة)/u.test(text)) return "السيرة";
+  if (/(?:القرآن|سورة|الآية)/u.test(text)) return "القرآن";
+  return fallback;
+}
+
+export function splitCompoundClaimText(
+  text: string,
+  domain: Domain,
+  previousContext = "",
+): ExtractedClaim[] {
+  const boundary = findIndependentClauseBoundary(text);
+  if (!boundary) {
+    return [{ text: resolveContextualReferences(text, previousContext), domain }];
+  }
+
+  const left = text.slice(0, boundary.start).trim();
+  const right = text.slice(boundary.end).trim();
+  const leftClaims = splitCompoundClaimText(left, domain, previousContext);
+  const rightClaims = splitCompoundClaimText(
+    right,
+    domain,
+    `${previousContext} ${left}`.trim(),
+  );
+  return [...leftClaims, ...rightClaims].map((claim) => ({
+    ...claim,
+    domain: inferSplitClaimDomain(claim.text, claim.domain),
+  }));
+}
+
 async function extractClaims(
   client: OpenAI,
   content: string,
@@ -166,6 +310,9 @@ async function extractClaims(
       "لا تجب عن الادعاءات ولا تؤلف محتوى جديدًا.",
       "أعد نص كل ادعاء كاقتباس حرفي متصل من النص الأصلي؛ لا تصحح الإملاء ولا تبدل الأسماء أو الأرقام أو الإحالات.",
       "حافظ على النفي والتعميم ونسبة القول والمذهب والعالم والمرجع كما وردت.",
+      "قسّم الادعاءات المستقلة داخل الجملة الواحدة بعد الفاصلة مع واو العطف أو الفاصلة المنقوطة أو كما أن أو بينما أو ثم، عندما يقدم الجزء التالي نسبة أو مصدرًا أو تفسيرًا أو استنتاجًا قابلًا للتحقق مستقلًا.",
+      "لا تقسّم مجرد تعداد أجزاء الادعاء نفسه مثل العدل والإحسان والنهي. أبقِ الإحالات السياقية مثل هذه الآية وهذا الحديث وهذه الرواية وهذا المصدر كما وردت دون تخمين مرجعها.",
+      "افصل نسبة الحديث عن ادعاء رقمه إذا أمكن، مع الحفاظ على متن الحديث والمصدر في الادعاء الذي يتضمن الرقم.",
       "لا تقسّم الادعاء الواحد إلى أجزاء تفقد سياقه. أعد مصفوفة فارغة إن لم يوجد ادعاء قابل للتحقق.",
       "صنّف المجال بإحدى القيم العربية المحددة في المخطط فقط.",
     ].join(" "),
@@ -178,7 +325,7 @@ async function extractClaims(
       if (!Array.isArray(rawClaims) || rawClaims.length > 12) {
         throw new InvalidStructuredOutputError();
       }
-      return rawClaims.map((rawClaim): ExtractedClaim => {
+      return rawClaims.flatMap((rawClaim): ExtractedClaim[] => {
         if (typeof rawClaim !== "object" || rawClaim === null) {
           throw new InvalidStructuredOutputError();
         }
@@ -191,10 +338,12 @@ async function extractClaims(
         ) {
           throw new InvalidStructuredOutputError();
         }
-        return {
-          text: candidate.text,
-          domain: candidate.domain as Domain,
-        };
+        const start = content.indexOf(candidate.text);
+        return splitCompoundClaimText(
+          candidate.text,
+          candidate.domain as Domain,
+          start < 0 ? "" : content.slice(0, start),
+        );
       });
     },
     5000,
@@ -232,11 +381,18 @@ function parseQuranReference(
 
 function findExplicitHadithReferenceClaims(content: string): ExtractedClaim[] {
   const pattern =
-    /[^.!؟\n]*(?:صحيح\s+)?(?:البخاري|مسلم)[^.!؟\n]*(?:برقم|رقم|حديث)\s*[0-9٠-٩۰-۹]+[^.!؟\n]*[.!؟]?/giu;
+    /[^.!؟\n]*(?:صحيح\s+)?(?:البخاري|مسلم)[^.!؟\n]*(?:برقم|رقم(?:ه|ها)?|حديث)\s*[0-9٠-٩۰-۹]+[^.!؟\n]*[.!؟]?/giu;
   return [...content.matchAll(pattern)]
-    .map((match) => match[0].trim())
-    .filter(Boolean)
-    .map((text) => ({ text, domain: "الحديث" }));
+    .flatMap((match) => {
+      const text = match[0].trim();
+      if (!text) return [];
+      const start = match.index ?? 0;
+      return splitCompoundClaimText(
+        text,
+        "الحديث",
+        content.slice(0, start),
+      );
+    });
 }
 
 function enforceExplicitFiqhDomain(claim: ExtractedClaim): ExtractedClaim {

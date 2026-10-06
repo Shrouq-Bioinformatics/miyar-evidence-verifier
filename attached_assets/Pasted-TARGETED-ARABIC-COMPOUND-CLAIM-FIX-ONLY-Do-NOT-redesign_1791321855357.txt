@@ -1,0 +1,86 @@
+TARGETED ARABIC COMPOUND-CLAIM FIX ONLY
+
+Do NOT redesign claim extraction.
+Multi-claim extraction already works correctly when claims are separated by full stops.
+
+Confirmed working example:
+ورد في القرآن الكريم الأمر بالعدل والإحسان في سورة النحل، الآية 90. وحديث «إنما الأعمال بالنيات» رواه البخاري برقم 999999. وذكر ابن هشام خبر الهجرة، ومجرد ذكره للرواية يثبت صحتها حديثيًا.
+
+The problem is specifically claims joined inside the SAME Arabic sentence using:
+- ، و
+- ؛
+- كما أن
+- بينما
+- ثم
+
+and where the second claim uses contextual references such as:
+- هذه الآية
+- هذا الحديث
+- هذه الرواية
+- هذا المصدر
+
+FAILED REAL EXAMPLE:
+
+ورد في سورة الحجرات، الآية 13 أن الله جعل الناس شعوبًا وقبائل ليتعارفوا، ويفسر المختصر هذه الآية بأنها تثبت أفضلية قبيلة معينة على بقية الناس.
+
+Current:
+1 claim
+
+Required:
+2 independently verifiable claims.
+
+Claim 1:
+ورد في سورة الحجرات، الآية 13 أن الله جعل الناس شعوبًا وقبائل ليتعارفوا.
+
+Claim 2:
+يفسر المختصر سورة الحجرات، الآية 13 بأنها تثبت أفضلية قبيلة معينة على بقية الناس.
+
+IMPORTANT:
+When extracting Claim 2, resolve "هذه الآية" from the preceding clause so the extracted claim remains self-contained.
+
+Do NOT separate clauses merely because they contain "و".
+Only split when the second clause introduces an independently verifiable proposition, attribution, source, conclusion, or interpretation.
+
+Regression tests:
+
+A)
+ورد في سورة الحجرات، الآية 13 أن الله جعل الناس شعوبًا وقبائل ليتعارفوا، ويفسر المختصر هذه الآية بأنها تثبت أفضلية قبيلة معينة على بقية الناس.
+EXPECTED: 2 claims
+
+B)
+ورد في سورة النحل، الآية 90 الأمر بالعدل والإحسان والنهي عن الفحشاء والمنكر والبغي.
+EXPECTED: 1 claim
+
+C)
+ذكر ابن هشام خبر الهجرة، ومجرد ذكره للرواية يثبت صحتها حديثيًا.
+EXPECTED: 2 claims
+
+D)
+حديث «إنما الأعمال بالنيات» رواه البخاري في صحيحه، ورقمه 999999.
+EXPECTED:
+Extract the attribution and explicit number assertion so the wrong-number reference can be evaluated.
+
+Do not change:
+- providers
+- evidence retrieval
+- result statuses
+- UI
+- history
+- API route
+
+Return:
+
+COMPOUND_ARABIC_CLAIMS_FIXED:
+PASS/FAIL
+
+HUJURAT_TEST_CLAIMS:
+<number>
+
+IBN_HISHAM_TEST_CLAIMS:
+<number>
+
+SINGLE_QURAN_CLAIM_REMAINS_ONE:
+PASS/FAIL
+
+EXISTING_PERIOD_SEPARATED_MULTI_CLAIM:
+PASS/FAIL
