@@ -140,7 +140,6 @@ function Header({ current }: { current: string }) {
       <div className="nav-inner">
         <Link href="/" className="brand" aria-label="مِعيار — الصفحة الرئيسية">
           <img className="brand-logo" src={miyarLogo} alt="" aria-hidden="true" />
-          <span className="brand-name">مِعيار</span>
         </Link>
         <nav className="nav-links" aria-label="التنقل الرئيسي">
           <Link href="/" aria-current={current === '/' ? 'page' : undefined}>الرئيسية</Link>
