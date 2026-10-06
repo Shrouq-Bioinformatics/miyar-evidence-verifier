@@ -18,6 +18,7 @@ try {
       path.join(testsDir, "ibn-hisham-seerah-provider.test.ts"),
       path.join(testsDir, "source-safety.test.ts"),
       path.join(testsDir, "evidence-providers.test.ts"),
+      path.join(testsDir, "public-verifier-extraction.test.ts"),
     ],
     outdir: outputDir,
     bundle: true,
